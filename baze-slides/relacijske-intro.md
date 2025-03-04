@@ -1,21 +1,31 @@
 ---
-theme: gaia
-paginate: true
 marp: true
+theme: gaia
+title: Odabrana poglavlja iz relacijskih baza podataka
+description: Nikola Balić
+paginate: true
 ---
 
-# Relacijske Baze Podataka: Osnove
-## Uvodno Predavanje (45 minuta)
+# Odabrana poglavlja iz relacijskih baza podataka
+## 2025
+
+Nikola Balić
+nikola.balic@gmail.com
+github.com/nkkko
 
 ---
-## Uvod (5 minuta)
+## Uvod
 
-- Otvaranje: "Zamislite knjižnicu gdje su knjige razbacane nasumično vs. one s jasnim sustavom"
-- Zašto su baze podataka važne u našem svijetu vođenom podacima
+- "Hrpa vs. Knjižnica"
 - Budućnost i uloga baza podataka u dobu umjetne inteligencije i LLM-ova
 
+<!--
+1. Za početak, zamislite dvije knjižnice. U prvoj, knjige su posvuda - na podu, na stolovima, nema nikakvog reda. Pronaći određenu knjigu je gotovo nemoguće, zar ne? A sada zamislite drugu knjižnicu, gdje je svaka knjiga uredno katalogizirana, smještena na policama prema sustavu, s karticama koje vam pomažu da je brzo pronađete. Baze podataka su upravo to - sustav za organizaciju i učinkovito pronalaženje informacija, poput dobro organizirane knjižnice, u usporedbi s kaosom prve knjižnice.
+2. Baze podataka postaju još važnije jer one pohranjuju, upravljaju i osiguravaju kvalitetu tih podataka. Budućnost baza podataka nije samo pohrana, već i inteligentno upravljanje podacima kako bi se omogućio razvoj i primjena UI i LLM-ova.
+-->
+
 ---
-## Osnovni Koncepti (12 minuta)
+## Osnovni Koncepti
 
 - Tablice: Gradivni blokovi
   - Primjer: Jednostavna baza podataka narudžbi kupaca
@@ -23,7 +33,6 @@ marp: true
   - Primarni ključevi: Jedinstveni identifikatori
   - Strani ključevi: Stvaranje veza
   - Vrste odnosa (jedan-prema-mnogima, itd.)
-- Važnost dobro dizajnirane sheme
 
 ---
 ## Tablice: Gradivni Blokovi
@@ -55,20 +64,16 @@ Tablica: Kupci
 ---
 ## Vrste Odnosa
 
-Vizualni prikaz odnosa Jedan-prema-Mnogo:
-
-![Odnosi Jedan-prema-Mnogo](https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Relationship_one_to_many.svg/800px-Relationship_one_to_many.svg.png)
-
 - **Jedan-prema-Mnogo (1:N):** Jedan kupac može imati više narudžbi.
-- **Jedan-prema-Jedan (1:1):** (Rjeđe) Jedan kupac može imati jedan profil detalja.
+- **Jedan-prema-Jedan (1:1):** (Rjeđe) Jedan kupac može imati jedan profil.
 - **Mnogo-prema-Mnogo (M:N):** (Složenije) Narudžba može sadržavati više proizvoda, a proizvod se može pojaviti u više narudžbi (koristi se pomoćna tablica).
 
 ---
-## SQL Osnove (12 minuta)
+## SQL Osnove
 
 - Osnovna struktura: `SELECT`, `FROM`, `WHERE`
 - Jednostavni primjeri upita
-- Interaktivna demonstracija: Izgradnja osnovnog upita
+- Demonstracija izgradnje baze podataka
 - Spajanje tablica: Snaga odnosa
   - Brzi primjer spajanja kupaca i narudžbi
 
@@ -103,16 +108,15 @@ WHERE Grad = 'Zagreb';
 ```
 
 ---
-## Interaktivna Demonstracija (uživo!)
+## Demo: Izgradnje Baze Podataka
 
-*Pitanje publici: Što biste željeli pitati bazu podataka o kupcima?*
+Koristimo `database.build` za brzu izgradnju primjera baze podataka:
 
-*Primjer odgovora: Želim vidjeti email adrese svih kupaca.*
-
-*SQL upit uživo:*
-```sql
-SELECT Email
-FROM Kupci;
+*Primjer upita za `database.build`:*
+```
+Create a database for an online store with two tables:
+'Kupci' (Customers) and 'Narudžbe' (Orders).
+Use appropriate data types, and include primary and foreign key constraints.
 ```
 
 ---
@@ -133,15 +137,7 @@ INNER JOIN Narudžbe ON Kupci.ID_Kupca = Narudžbe.ID_Kupca;
 
 Vizualizacija INNER JOIN:
 
-![INNER JOIN](https://www.sql-join.com/wp-content/uploads/2016/01/sql-inner-join.jpg)
-
----
-## Principi Dizajna Baza Podataka (10 minuta)
-
-- Osnove normalizacije (fokus na zašto je važno)
-- Uobičajene zamke: "Katastrofa dupliciranih podataka"
-- Indeksi: Kako ubrzavaju vašu bazu podataka
-- Kratko spominjanje transakcija
+![INNER JOIN](assets/innerjoin.png)
 
 ---
 ## Normalizacija Baza Podataka
@@ -182,23 +178,6 @@ Tablica: Narudžbe (nenormalizirana)
 - **Nedostatak:** Zauzimaju dodatni prostor i usporavaju operacije upisa/ažuriranja.
 
 ---
-## Transakcije (Kratko Spominjanje)
-
-- **Što su?** Logičke jedinice rada koje se izvršavaju kao **cjelina**.
-- **ACID svojstva:**
-    - **Atomicity (Atomčnost):** Sve ili ništa.
-    - **Consistency (Konzistentnost):** Održava integritet baze podataka.
-    - **Isolation (Izolacija):** Transakcije se izvršavaju neovisno jedna o drugoj.
-    - **Durability (Trajnost):** Promjene su trajne nakon potvrde transakcije.
-- **Važne za osiguranje pouzdanosti** i **integriteta** podataka.
-
----
-## Kontekst Stvarnog Svijeta (6 minuta)
-
-- Kako relacijske baze podataka pokreću svakodnevne aplikacije
-- Završne misli i poticaj za pitanja i odgovore
-
----
 ## Primjeri Primjene
 
 Relacijske baze podataka su **posvuda**:
@@ -216,17 +195,3 @@ Relacijske baze podataka su **posvuda**:
 - Razumijevanje osnovnih koncepata je **ključno** za rad s podacima.
 - SQL je **standardni jezik** za interakciju s relacijskim bazama podataka.
 - Dobar dizajn baze podataka je **važan za performanse i integritet**.
-
----
-## Pitanja i Odgovori
-
-- Imate li pitanja?
-- Želite li da ponovimo neki koncept?
-- Razgovarajmo!
-
----
-## Hvala na Pažnji!
-
-Kontakt informacije:
-[vaš email]
-[vaša web stranica/društvena mreža (opcionalno)]
