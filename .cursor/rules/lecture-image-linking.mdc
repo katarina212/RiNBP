@@ -1,0 +1,169 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+ ---
+description: Guidelines for linking and using generated images in Marp lecture slides
+globs: lectures/*/lecture.md
+alwaysApply: false
+---
+# Rule: Lecture Image Linking Best Practices
+
+## Description
+This rule provides guidelines for effectively linking and using generated images within Marp-based lecture slides, ensuring consistency, proper sizing, and optimal display.
+
+## Implementation Details
+
+### Basic Image Linking
+- Use relative paths from the lecture markdown file to the images folder
+- Always include images in their own slides or with sufficient space
+- Use width/height controls for consistent sizing across slides
+- Example:
+  ```markdown
+  ## Slide Title
+
+  ![width:800px](mdc:images/image_name.png)
+  ```
+
+### Image Sizing Guidelines
+- Use consistent image sizes throughout a presentation
+- For full-width images: `![width:800px](mdc:images/image_name.png)`
+- For half-width images: `![width:400px](mdc:images/image_name.png)`
+- For side-by-side images:
+  ```markdown
+  <div class="columns">
+  <div>
+
+  ![width:380px](mdc:images/left_image.png)
+
+  </div>
+  <div>
+
+  ![width:380px](mdc:images/right_image.png)
+
+  </div>
+  </div>
+  ```
+
+### Background Images and Right Alignment
+- Background images in Marp provide a powerful way to position images alongside content
+- **Right-aligning images** is particularly useful for presentations with text on left, visuals on right
+- Use the `bg right` directive with optional percentage to control width:
+
+#### Basic Right Alignment
+```markdown
+![bg right](mdc:assets/image_name.png)
+```
+- This positions the image on the right side, taking up 50% of the slide width by default
+
+#### Controlling Width of Right-Aligned Image
+```markdown
+![bg right:40%](mdc:assets/image_name.png)
+```
+- This sets the image to take up 40% of the slide width on the right side
+- Adjust percentage to fine-tune the layout (30-40% often works well for QR codes)
+
+#### Right Alignment with Image Sizing
+```markdown
+![bg right:35% width:400px](mdc:assets/image_name.png)
+```
+- Combines right alignment with explicit width control
+- Useful for ensuring consistent image sizes across slides while maintaining right alignment
+
+#### Using Right-Aligned Images with Content
+```markdown
+![bg right:40%](mdc:assets/qr_code.png)
+
+# Main Title or Link
+
+Additional content goes here on the left side
+```
+- Content will automatically flow in the space not occupied by the image
+- Great for pairing explanatory text with diagrams or QR codes with links
+
+#### Tips for Right-Aligned Images
+- Keep text minimal when using right-aligned images to avoid crowding
+- Ensure sufficient contrast between background and text
+- For QR codes, test scanning functionality at presentation resolution
+- Consider using `<!-- _class: center -->` directive to vertically center content
+
+- Left-aligned background: `![bg left:40%](mdc:images/image_name.png)`
+- Full background with opacity: `![bg brightness:0.6](mdc:images/image_name.png)`
+- Multiple background images:
+  ```markdown
+  ![bg right:33%](mdc:images/image1.png)
+  ![bg right:33%](mdc:images/image2.png)
+  ![bg right:33%](mdc:images/image3.png)
+  ```
+
+### Image Captions and References
+- Include captions below important figures
+- Credit image sources when using external images
+- Example:
+  ```markdown
+  ![width:700px](mdc:images/network_analysis.png)
+
+  *Figure 1: Network analysis of social connections. Source: Example Dataset (2023)*
+  ```
+
+### Image-Code Pairing
+- When showing code examples related to images, pair them closely
+- Split the slide between code and image when appropriate
+- Example:
+  ```markdown
+  <div class="columns">
+  <div>
+
+  ```python
+  import networkx as nx
+  import matplotlib.pyplot as plt
+  
+  G = nx.karate_club_graph()
+  nx.draw(G, with_labels=True)
+  plt.show()
+  ```
+
+  </div>
+  <div>
+
+  ![width:380px](mdc:images/karate_club.png)
+
+  </div>
+  </div>
+  ```
+
+### Progressive Image Reveals
+- For step-by-step demonstrations, use multiple slides with progressive images
+- Name images sequentially: `step1.png`, `step2.png`, etc.
+- Keep consistent positioning and sizing between steps
+- Example:
+  ```markdown
+  ## Step 1: Initial Network
+
+  ![width:700px](mdc:images/algorithm_step1.png)
+
+  ---
+
+  ## Step 2: Node Removal
+
+  ![width:700px](mdc:images/algorithm_step2.png)
+  ```
+
+### Technical Considerations
+- Ensure all image files exist before presenting
+- Optimize image file sizes for quick loading (PNG for diagrams, JPG for photos)
+- Verify that images are readable at presentation resolution
+- Consider creating dark/light versions of diagrams if presenting in different lighting conditions
+
+### Backup Strategies
+- Include textual descriptions for critical visualizations
+- Prepare alternative explanations for cases where images cannot be displayed
+- Consider providing links to high-resolution versions of complex diagrams
+
+## Benefits
+- Consistent visual experience throughout the presentation
+- Better readability and comprehension of visual content
+- Effective pairing of code examples with their visual outputs
+- Optimized slide layout for presentation on different screen sizes
+- Professional appearance with proper image formatting and attribution

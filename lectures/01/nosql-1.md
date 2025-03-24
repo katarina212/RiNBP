@@ -14,8 +14,6 @@ Nikola Balić
 nikola.balic@gmail.com
 github.com/nkkko
 
-[1/15]
-
 ---
 ## Što ćemo učiti?
 
