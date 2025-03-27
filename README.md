@@ -26,6 +26,10 @@ This repository contains lecture materials, examples, and project ideas for the 
 
 Students are encouraged to explore the [project ideas](project-ideas.md) document to select or propose a course project. Projects can be completed individually or in small teams.
 
+## 📋 Student Projects
+
+View all current student projects in the [STUDENT-PROJECTS.md](STUDENT-PROJECTS.md) file. For information on how to update your project details, see the [CONTRIBUTING.md](CONTRIBUTING.md) guide.
+
 ## 🔄 Student Project Repositories
 
 Student projects are included as Git submodules. This allows each student/team to maintain their own repository while keeping all projects accessible through this main repository.
