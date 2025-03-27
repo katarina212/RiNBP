@@ -1,0 +1,45 @@
+[submodule "projects/hrsto"]
+	path = projects/hrsto
+	url = https://github.com/bhrsto444/rinbp25-bhrsto.git
+[submodule "projects/skocibusic"]
+	path = projects/skocibusic
+	url = https://github.com/danijelasko/OfflineLibrary.git
+[submodule "projects/kokic"]
+	path = projects/kokic
+	url = https://github.com/mKO9876/rinbp25-marta.git
+[submodule "projects/romac"]
+	path = projects/romac
+	url = https://github.com/bornaromac/rinbp25-protein_interactions
+[submodule "projects/elez"]
+	path = projects/elez
+	url = https://github.com/MateElez/rinbp25-TransitGraphDB-
+[submodule "projects/radic"]
+	path = projects/radic
+	url = https://github.com/Araste1a/rinbp25-vector-db-comparison
+[submodule "projects/bilic"]
+	path = projects/bilic
+	url = https://github.com/AntonioBilic/rinbp25-News-Recommendation-Pgvector
+[submodule "projects/simic"]
+	path = projects/simic
+	url = https://github.com/bsimic11/RiNBP25
+[submodule "projects/draskovic"]
+	path = projects/draskovic
+	url = https://github.com/ems78/rinbp25-safe-agents
+[submodule "projects/vucemilovic-vranjic"]
+	path = projects/vucemilovic-vranjic
+	url = https://github.com/mateaW/rinbp25-LLM-prompt-Optimizer/
+[submodule "projects/jankovic"]
+	path = projects/jankovic
+	url = https://github.com/jaksaj/rinbp25-promptVs
+[submodule "projects/jadric"]
+	path = projects/jadric
+	url = https://github.com/mjadric/rinbp25-Network-Threat-Detection-System
+[submodule "projects/kujundzic"]
+	path = projects/kujundzic
+	url = https://github.com/nkujundzic1010/rinbp25-aviation-accident
+[submodule "projects/juric"]
+	path = projects/juric
+	url = https://github.com/tomisljuric/rinbp25-transfermarkt
+[submodule "projects/jakobljevic"]
+	path = projects/jakobljevic
+	url = https://github.com/bruno-jakobljevic/blockchain-explorer
