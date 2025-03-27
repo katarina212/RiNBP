@@ -1,27 +1,29 @@
 # CLAUDE.md - Codebase Guidelines
 
 ## Repository Purpose
-This repository contains educational materials for database courses, including:
-- Relational database lectures (`relacijske-intro.md`)
-- NoSQL database lectures (`nosql-1.md`, `nosql-2.md`)
-- Database examples and assets
+This repository contains educational materials for database courses, focusing on relational and NoSQL databases.
+
+## Python Guidelines
+- Use `snake_case` for variables/functions, `PascalCase` for classes
+- Import order: stdlib, third-party, local modules (with blank line separators)
+- Error handling: use try/except blocks with specific exception types
+- Type hints preferred for function parameters and return values
+- Generate visualization images: `python lectures/03/generate_nosql_images.py`
 
 ## Markdown Presentation Guidelines
 - Use Marp for slideshows (frontmatter: `marp: true`)
 - Separate slides with `---` on a separate line
-- Include proper frontmatter with theme, title, and pagination
+- Include proper frontmatter: theme, title, pagination
 - Use consistent header levels throughout presentations
-- Keep content focused with concise bullet points
+- Structure: title slide → agenda/overview → content → summary/questions
 
-## Python/Jupyter Guidelines (When Applicable)
-- Keep notebook cells focused on single tasks (20-25 lines max)
-- Use snake_case for variables/functions, PascalCase for classes
-- Include markdown documentation explaining the purpose of code
-- Document the "why" behind code decisions, not just the "what"
-- Begin notebooks with title, overview, and author information
+## Code Style & Documentation
+- Document functions with docstrings explaining purpose and parameters
+- Keep functions focused (< 30 lines) and descriptive naming
+- Add context explaining the "why" behind code decisions
+- Matplotlib visualizations: use consistent styling, proper labels, and readable fonts
 
 ## Commit Guidelines
-- Follow conventional commit format: `<type>(<scope>): <short summary>`
-- Types: feat, fix, docs, style, refactor, test, chore, etc.
-- Include detailed descriptions of what was changed
-- Explain why changes were made in commit messages
+- Format: `<type>(<scope>): <short summary>`
+- Types: feat, fix, docs, style, refactor, test, chore
+- Describe what changed and why in commit messages

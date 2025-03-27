@@ -1,0 +1,65 @@
+# RiNBP - Raspodijeljene i Nerelacijske Baze Podataka
+
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+Course materials for "Distributed and Non-Relational Databases" / "Raspodijeljene i Nerelacijske Baze Podataka" (2024/2025).
+
+## 📚 Course Overview
+
+This repository contains lecture materials, examples, and project ideas for the database systems course covering:
+
+- Relational database advanced topics
+- NoSQL database systems
+- Distributed database architectures
+- Data modeling techniques
+- Transaction processing
+
+## 🗂️ Repository Structure
+
+- **`/lectures`**: Markdown-based lecture slides organized by week
+  - Uses [Marp](https://github.com/marp-team/marp) for presentation format
+- **`/assets`**: Images and diagrams used in lecture materials
+- **`/materials`**: Sample databases and exercise files
+- **`/projects`**: Git submodules linking to individual student project repositories
+
+## 🎓 Project Ideas
+
+Students are encouraged to explore the [project ideas](project-ideas.md) document to select or propose a course project. Projects can be completed individually or in small teams.
+
+## 🔄 Student Project Repositories
+
+Student projects are included as Git submodules. This allows each student/team to maintain their own repository while keeping all projects accessible through this main repository.
+
+### Cloning this repository
+
+To clone this repository with all student projects:
+```
+git clone --recursive https://github.com/nkkko/rinbp
+```
+
+If you've already cloned without `--recursive`:
+```
+git submodule update --init --recursive
+```
+
+To update all student projects to their latest versions:
+```
+git submodule update --remote
+```
+
+### Adding new student projects
+
+For instructors, to add a new student project repository:
+```
+git submodule add [REPO_URL] projects/[PROJECT_NAME]
+```
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍🏫 Author
+
+Nikola Balić
+Email: nikola.balic@gmail.com
+GitHub: [@nkkko](https://github.com/nkkko)
