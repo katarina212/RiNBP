@@ -9,15 +9,22 @@ Course materials for "Distributed and Non-Relational Databases" / "Raspodijeljen
 This repository contains lecture materials, examples, and project ideas for the database systems course covering:
 
 - Relational database advanced topics
-- NoSQL database systems
+- NoSQL database systems (Document, Key-Value, Column-Family, Graph)
+- Modern analytical databases (DuckDB)
+- Vector databases and AI integration
 - Distributed database architectures
 - Data modeling techniques
 - Transaction processing
+- Retrieval Augmented Generation (RAG)
 
 ## 🗂️ Repository Structure
 
 - **`/lectures`**: Markdown-based lecture slides organized by week
   - Uses [Marp](https://github.com/marp-team/marp) for presentation format
+  - Complete lecture series from 00-12 covering all database types
+    - 00-04: Core concepts and SQL programming
+    - 05-06: MongoDB and distributed databases
+    - 07-12: NoSQL types (fundamentals, key-value, column-family, graph, document, vector)
 - **`/assets`**: Images and diagrams used in lecture materials
 - **`/materials`**: Sample databases and exercise files
 - **`/projects`**: Git submodules linking to individual student project repositories
