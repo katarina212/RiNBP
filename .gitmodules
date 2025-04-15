@@ -10,9 +10,6 @@
 [submodule "projects/romac"]
 	path = projects/romac
 	url = https://github.com/bornaromac/rinbp25-protein_interactions
-[submodule "projects/elez"]
-	path = projects/elez
-	url = https://github.com/MateElez/rinbp25-TransitGraphDB-
 [submodule "projects/radic"]
 	path = projects/radic
 	url = https://github.com/Araste1a/rinbp25-vector-db-comparison
@@ -22,9 +19,6 @@
 [submodule "projects/simic"]
 	path = projects/simic
 	url = https://github.com/bsimic11/RiNBP25
-[submodule "projects/draskovic"]
-	path = projects/draskovic
-	url = https://github.com/ems78/rinbp25-safe-agents
 [submodule "projects/vucemilovic-vranjic"]
 	path = projects/vucemilovic-vranjic
 	url = https://github.com/mateaW/rinbp25-LLM-prompt-Optimizer/
@@ -43,3 +37,9 @@
 [submodule "projects/jakobljevic"]
 	path = projects/jakobljevic
 	url = https://github.com/bruno-jakobljevic/blockchain-explorer
+[submodule "projects/draskovic"]
+	path = projects/draskovic
+	url = https://github.com/ems78/GameOfThrows
+[submodule "projects/elez"]
+	path = projects/elez
+	url = https://github.com/MateElez/MateElez-rinbp25-TransitGraphDB-
