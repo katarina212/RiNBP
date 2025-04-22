@@ -14,25 +14,67 @@ nikola.balic@gmail.com
 github.com/nkkko
 
 ---
-## Od JSON-a do MongoDB-a
+## MongoDB — Lider NoSQL Svijeta
+
+MongoDB je danas najpopularnija NoSQL baza podataka, sa 45.86% tržišnog udjela (2025.), daleko ispred konkurencije kao što su Amazon DynamoDB (10.67%) i Apache Cassandra (4.18%).
+
+- **Prava tehnologija u pravom trenutku:** Prvi open-source release dolazi 2009., upravo kad web i mobilne aplikacije eksplodiraju i kad *cloud* postaje industrijski standard.
+- MongoDB je odmah adresirao problem: **Skalabilnost i visoke performanse** za internet aplikacije s velikim i promjenjivim podatkovnim modelima
+- MongoDB *developer-first* pristup
+
+---
+## Od JSON-a do Dokument pristupa
 
 ### Evolucija pohrane podataka
 
-- **JSON kao temelj:** Prirodna evolucija iz XML-a
-- **Document-Oriented pristup:** Fleksibilnost i skalabilnost
-- **MongoDB:** Najpopularnija document-oriented baza podataka
-- **BSON format:** Binary JSON - optimizirana verzija JSON-a
+- **XML kao prethodnik:** Struktuirani podaci, ali često preopširan.
+- **JSON kao prirodna evolucija:**
+    - Lakši, čitljiviji format, sličan JavaScript objektima.
+    - Postao *de facto* standard za web API-je i konfiguracije.
+- **Potreba za fleksibilnošću:** Relacijske baze imaju krutu shemu; JSON nudi fleksibilnost.
+- **Document-Oriented pristup:** Pohrana podataka u obliku dokumenata omogućavajući fleksibilnost i skalabilnost.
 
 ---
-## Što je MongoDB?
+## MongoDB i BSON
 
-### Osnovne karakteristike
+### Specijalizirani pristup za baze podataka
+
+- **MongoDB:** Vodeća *document-oriented* baza podataka.
+- **BSON (Binary JSON):**
+    - Binarni format za serijalizaciju JSON-like dokumenata.
+    - Optimiziran za brzinu, prostor i efikasnost pretraživanja.
+    - Dodaje dodatne tipove podataka (npr. `ObjectId`, `Date`, binarne podatke).
+
+---
+
+```json
+// Primjer JSON i BSON dokumenta
+{"hello": "world"} →
+
+\x16\x00\x00\x00           // total document size
+\x02                       // 0x02 = type String
+hello\x00                  // field name
+\x06\x00\x00\x00world\x00  // field value
+\x00                       // 0x00 = type EOO ('end of object')
+```
+
+---
+## Osnovne karakteristike MongoDB-a
 
 - **Document-oriented baza podataka**
 - **Schemaless dizajn:** Fleksibilna struktura dokumenata
 - **Horizontalna skalabilnost**
 - **Visoke performanse**
 - **Bogat query jezik**
+
+---
+## Što znači "Schemaless"?
+
+- **Fleksibilnost:** Dokumenti u istoj kolekciji *ne moraju* imati istu strukturu (ista polja i tipove podataka).
+- **Primjer:** Jedan dokument korisnika može imati polje `middle_name`, dok drugi nema.
+- **Evolucija aplikacije:** Lakše je dodavati nova polja bez migracije cijele baze.
+- **Oprez:** Prevelika fleksibilnost može dovesti do nedosljednosti podataka.
+- **Rješenje:** *Schema Validation* - Mogućnost definiranja pravila za strukturu dokumenata (opcionalno).
 
 ---
 ## MongoDB vs Relacijske baze
@@ -46,6 +88,24 @@ github.com/nkkko
 | Stupci | Polja |
 | JOIN | $lookup |
 | Primarni ključ | _id polje |
+
+---
+## `$lookup` - MongoDB ekvivalent za JOIN
+
+- Koristi se unutar **agregacijskog pipeline-a**.
+- Omogućuje spajanje dokumenata iz dvije kolekcije.
+- **Sintaksa:**
+```javascript
+{
+  $lookup:
+    {
+      from: <kolekcija_za_spajanje>,
+      localField: <polje_iz_trenutne_kolekcije>,
+      foreignField: <polje_iz_druge_kolekcije>,
+      as: <naziv_novog_polja_s_rezultatima>
+    }
+}
+```
 
 ---
 ## MongoDB dokumenti
@@ -133,20 +193,71 @@ db.orders.aggregate([
 - **Geospatial Index**
 
 ---
-## MongoDB Schema Design
+## Indeksi: Kreiranje i Analiza
 
-### Best Practices
+- **Kako indeksi rade?** Obično koriste B-tree strukturu za brzo pronalaženje dokumenata.
+- **Kreiranje indeksa:**
+```javascript
+// Jednostavni indeks (ascending)
+db.users.createIndex( { "age": 1 } )
 
-- **Embedding vs Referencing**
-- **Kada koristiti koji pristup?**
-- **Modeliranje One-to-Many veza**
-- **Modeliranje Many-to-Many veza**
-- **Denormalizacija za performanse**
+// Compound index (na više polja)
+db.products.createIndex( { "category": 1, "price": -1 } ) // 1=asc, -1=desc
+
+// Jedinstveni indeks (unique)
+db.users.createIndex( { "email": 1 }, { unique: true } )
+```
+
+---
+## Schema Design: Embedding vs. Referencing
+
+- **Embedding (ugrađivanje):** Pohranjivanje povezanih podataka unutar istog dokumenta.
+  - **Primjer:** Komentari unutar dokumenta posta.
+  - **Prednosti:** Brži dohvat podataka (jedan upit), atomske operacije na dokumentu.
+  - **Nedostaci:** Ograničenje veličine dokumenta (16MB), potencijalno veći dokumenti, duplikacija podataka ako se isti pod-dokument koristi na više mjesta.
+
+---
+
+- **Referencing (Referenciranje):** Pohranjivanje reference (obično `_id`) na dokument u drugoj kolekciji.
+  - **Primjer:** Pohranjivanje `author_id` u postu, a detalji autora su u `users` kolekciji.
+  - **Prednosti:** Manji dokumenti, nema duplikacije, lakše ažuriranje referenciranih podataka na jednom mjestu.
+  - **Nedostaci:** Potrebni dodatni upiti (`$lookup`) za dohvat povezanih podataka (sporije čitanje).
+
+---
+## Schema Design: Modeliranje Veza
+
+- **One-to-Few:**
+  - **Embedding:** Gotovo uvijek najbolji izbor. Primjer: Adrese korisnika.
+- **One-to-Many:**
+  - **Embedding:** Dobro ako "mnogo" nije preveliko i podaci se čitaju zajedno (npr. komentari posta).
+  - **Referencing:** Bolje ako "mnogo" može biti veliko ili se podaci često ažuriraju neovisno (npr. proizvodi i narudžbe).
+
+---
+
+- **Many-to-Many (Mnogo-na-mnogo):**
+  - **Two-way Referencing:** Svaki dokument sadrži listu referenci na drugu stranu (npr. studenti i kolegiji - student ima listu `course_ids`, kolegij ima listu `student_ids`).
+  - **One-way Referencing:** Jedna strana sadrži listu referenci (npr. post ima listu `tag_ids`).
+  - **Embedding:** Rijetko, samo ako je jedna strana veze vrlo mala.
+
+---
+## Schema Design: Denormalizacija i Trade-offs
+
+- **Denormalizacija:** Dupliciranje podataka u više dokumenata radi optimizacije čitanja.
+  - **Primjer:** Pohranjivanje imena autora unutar svakog posta, iako postoji i u `users` kolekciji.
+  - **Prednosti:** Smanjuje potrebu za `$lookup`, ubrzava čitanje.
+  - **Nedostaci:** Povećava složenost ažuriranja (podatak treba ažurirati na više mjesta), veća potrošnja prostora, potencijalna nekonzistentnost.
+
+---
+
+- **Ključni Ustupci:**
+  - **Embedding:** Optimizirano za čitanje, ali može otežati ažuriranje i ograničiti veličinu.
+  - **Referencing:** Optimizirano za ažuriranje i konzistentnost, ali zahtijeva više upita za čitanje.
+  - **Denormalizacija:** Optimizirano za čitanje, ali komplicira ažuriranje i povećava rizik nekonzistentnosti.
+
+- **Pristup:** Odabrati modeliranje prema **najčešćim obrascima pristupa podacima (query patterns)**.
 
 ---
 ## Praktični primjer: Blog aplikacija
-
-### Model podataka
 
 ```javascript
 // Post dokument
@@ -191,6 +302,24 @@ db.orders.aggregate([
 - **Automatic Failover:** Visoka dostupnost
 
 ---
+## Mehanizmi Skalabilnosti i Dostupnosti
+
+- **Replica Set Detaljnije:**
+  - **Primary:** Jedan član koji prima sve zapise (write operacije).
+  - **Secondaries:** Više članova koji repliciraju podatke s Primary čvora. Mogu služiti za čitanje (read operacije).
+  - **Arbiter (opcionalno):** Član koji ne pohranjuje podatke, ali sudjeluje u izboru novog Primary čvora (election) u slučaju pada trenutnog.
+  - **Failover:** Automatski proces izbora novog Primary čvora ako trenutni postane nedostupan.
+
+---
+
+- **Sharding Detaljnije:**
+  - **Shards:** Pojedinačni Replica Setovi koji pohranjuju dio ukupnih podataka.
+  - **Shard Key:** Polje (ili više polja) u dokumentima koje određuje na koji Shard dokument pripada.
+  - **Chunks:** Rasponi vrijednosti Shard Key-a; MongoDB automatski distribuira chunkove po Shardovima.
+  - **Mongos:** Router proces koji prima upite od aplikacije i usmjerava ih na odgovarajuće Shardove.
+  - **Config Servers:** Pohranjuju meta-podatke o clusteru (mapiranje chunkova na shardove).
+
+---
 ## Sigurnost u MongoDB-u
 
 ### Osnovne sigurnosne prakse
@@ -213,28 +342,32 @@ db.orders.aggregate([
 5. **Implementacija pretraživanja**
 
 ---
-## Update operacije detaljnije
 
-### Različiti načini ažuriranja
+```sh
+docker run -d \
+  --name demo-mongo \
+  -p 27017:27017 \
+  mongo:latest
+```
 
 ```javascript
-// Ažuriranje jednog dokumenta
-db.users.updateOne(
-  { name: "Ana Horvat" },
-  { $set: { age: 26 } }
-)
+docker exec -it demo-mongo mongosh
+```
 
-// Ažuriranje više dokumenata
-db.users.updateMany(
-  { city: "Split" },
-  { $inc: { age: 1 } }
-)
+```javascript
+use myDemoDB
+```
 
-// Zamjena cijelog dokumenta
-db.users.replaceOne(
-  { name: "Ana Horvat" },
-  { name: "Ana Novak", age: 26, city: "Zagreb" }
-)
+```javascript
+db.users.insertOne({ name: "Alice", age: 25, joined: new Date() })
+```
+
+```javascript
+db.users.find().pretty()
+```
+
+```javascript
+db.users.deleteOne({ name: "Alice" })
 ```
 
 ---
@@ -243,12 +376,6 @@ db.users.replaceOne(
 ### Rad s poljima
 
 ```javascript
-// Dodavanje u polje
-db.users.updateOne(
-  { name: "Ana Horvat" },
-  { $push: { hobbies: "yoga" } }
-)
-
 // Dodavanje više vrijednosti
 db.users.updateOne(
   { name: "Ana Horvat" },
@@ -260,7 +387,11 @@ db.users.updateOne(
     }
   }
 )
+```
 
+---
+
+```javascript
 // Uklanjanje iz polja
 db.users.updateOne(
   { name: "Ana Horvat" },
@@ -282,12 +413,6 @@ db.users.find({
     { "address.country": "Croatia" }
   ]
 })
-
-// Pretraživanje po ugniježđenim objektima
-db.orders.find({
-  "shipping.address.city": "Split",
-  "items.quantity": { $gt: 2 }
-})
 ```
 
 ---
@@ -306,7 +431,11 @@ db.posts.find({
     $language: "croatian"
   }
 })
+```
 
+---
+
+```javascript
 // Sortiranje po relevantnosti
 db.posts.find(
   { $text: { $search: "mongodb" } },
@@ -335,35 +464,6 @@ db.places.find({
     }
   }
 })
-```
-
----
-## Agregacijski Pipeline: Napredni Primjeri
-
-### Kompleksna analiza podataka
-
-```javascript
-// Analiza prodaje po kategorijama i mjesecima
-db.sales.aggregate([
-  { $match: {
-      date: {
-        $gte: ISODate("2024-01-01"),
-        $lt: ISODate("2025-01-01")
-      }
-    }
-  },
-  { $group: {
-      _id: {
-        category: "$category",
-        month: { $month: "$date" }
-      },
-      totalSales: { $sum: "$amount" },
-      avgOrder: { $avg: "$amount" },
-      count: { $sum: 1 }
-    }
-  },
-  { $sort: { "_id.month": 1, "totalSales": -1 } }
-])
 ```
 
 ---
@@ -517,8 +617,6 @@ changeStream.on('change', (change) => {
 ---
 ## Performance Optimization
 
-### Best Practices
-
 - **Indeksi:**
   - Kreiranje indeksa za česte upite
   - Izbjegavanje nepotrebnih indeksa
@@ -529,6 +627,8 @@ changeStream.on('change', (change) => {
   - Izbjegavanje regex bez prefiksa
   - Limitiranje rezultata
 
+---
+
 - **Schema Design:**
   - Pravilno modeliranje za use-case
   - Balansiranje između denormalizacije i normalizacije
@@ -536,8 +636,6 @@ changeStream.on('change', (change) => {
 
 ---
 ## Monitoring i Održavanje
-
-### Alati i prakse
 
 - **MongoDB Compass:**
   - Performance insights
@@ -548,6 +646,8 @@ changeStream.on('change', (change) => {
   - Cloud monitoring
   - Backup & restore
   - Scaling operations
+
+---
 
 - **Mongosh:**
   - Administrative tasks
@@ -568,8 +668,6 @@ changeStream.on('change', (change) => {
 ---
 ## Atlas Mogućnosti
 
-### Ključne funkcionalnosti
-
 - **Cluster Management:**
   - Automatsko skaliranje
   - Self-healing recovery
@@ -579,8 +677,7 @@ changeStream.on('change', (change) => {
 - **Sigurnost:**
   - Network isolation
   - IP whitelisting
-  - VPC peering
-  - End-to-end encryption
+  - VPC peering, End-to-end encryption
 
 ---
 ## Atlas Setup
@@ -686,15 +783,8 @@ db.products.aggregate([
   - Federated queries
   - BI integracija
 
-- **Realm:**
-  - Backend as a Service
-  - Serverless funkcije
-  - Mobile sync
-
 ---
-## Atlas Best Practices
-
-### Optimizacija troškova i performansi
+## Atlas optimizacija troškova i performansi
 
 - **Cluster Sizing:**
   - Odabir pravog tier-a
@@ -705,6 +795,8 @@ db.products.aggregate([
   - Performance Advisor
   - Real-time metrics
   - Custom alerts
+
+---
 
 - **Backup Strategy:**
   - Continuous backup
@@ -721,20 +813,3 @@ db.products.aggregate([
 - **Jednostavnost korištenja**
 - **Bogat ekosustav**
 - **Velika zajednica korisnika**
-
----
-## Pitanja?
-
-### Sada je vrijeme za vaša pitanja!
-
-- Nejasnoće oko MongoDB-a?
-- Praktični problemi?
-- Use-case scenariji?
-
----
-## Hvala na Pažnji!
-
-Kontakt informacije:
-Nikola Balić
-nikola.balic@gmail.com
-github.com/nkkko
