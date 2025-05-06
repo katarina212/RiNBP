@@ -70,8 +70,6 @@ github.com/nkkko
 
 ## Kako nastaju vektorske ugradnje?
 
-![width:1000px](../../assets/v0.png)
-
 1. **Ulazni podaci** (tekst, slika, zvuk)
 2. **Model za generiranje embeddings** (BERT, OpenAI, CLIP, itd.)
 3. **Vektor** (numerička reprezentacija)
@@ -110,12 +108,10 @@ github.com/nkkko
 - **IVF (Inverted File Index)**
   - Podjela prostora u clustere
   - Pretraživanje samo relevantnih clustera
-  
+
 ---
 
 ## HNSW algoritam - primjer
-
-![width:900px](../../assets/v0.png)
 
 - Višeslojni graf s "prečacima" za brzo pretraživanje
 - Gornji slojevi: rijetke veze za velike skokove
@@ -221,7 +217,7 @@ client.upload_points(
     collection_name="documents",
     points=[
         models.PointStruct(
-            id=1, vector=[0.1, 0.2, ...], 
+            id=1, vector=[0.1, 0.2, ...],
             payload={"text": "Document content", "category": "article"}
         )
     ]
@@ -259,7 +255,6 @@ results = client.search(
 
 ## Retrieval Augmented Generation (RAG)
 
-![width:900px](../../assets/v0.png)
 
 1. **Indeksiranje**: Dokumenti → vektorske ugradnje → vektorska baza
 2. **Upitni proces**: Upit → vektorska ugradnja → pretraživanje relevantnih dokumenata
@@ -387,15 +382,15 @@ results = index.query(
 - **Privatnost podataka**
   - Vektorske ugradnje mogu sadržavati osjetljive informacije
   - Moguća rekonstrukcija originalnih podataka iz vektora
-  
+
 - **Autentikacija i autorizacija**
   - Granularna kontrola pristupa kolekcijama i vektorima
   - API ključevi i token-bazirani pristup
-  
+
 - **Enkripcija**
   - Enkripcija podataka u mirovanju i transportu
   - Izazov: efikasno pretraživanje enkriptiranih vektora
-  
+
 - **Regulatorna usklađenost**
   - GDPR, HIPAA, CCPA i ostale regulacije
 
@@ -547,10 +542,6 @@ print(answer)
 
 ---
 
-## Projekti - podsjetnik
-
-- **ROKOVI**: na stranicama kolegija
-- Predaja projekta u zadanim rokovima je uvjet za potpis!
 
 **Dataset primjeri:**
 - https://www.kaggle.com/datasets

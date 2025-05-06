@@ -1,12 +1,35 @@
 ---
 marp: true
 theme: gaia
-title: Raspodijeljene i nerelacijske baze podataka - NoSQL Fundamentals
-description: Nikola Balić, NoSQL Fundamentals
+title: Raspodijeljene i nerelacijske baze podataka - Ključ-vrijednost baze podataka
+description: Nikola Balić, Raspodijeljene baze podataka
 paginate: true
+style: |
+  pre {
+    overflow-x: auto;
+    max-height: 400px;
+  }
+  pre, code {
+    font-size: 0.8em;
+  }
+  table {
+    font-size: 0.85em;
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 0.2em 0.5em;
+  }
+  /* Ensure table width is contained */
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+  }
 ---
 
-# NoSQL Database Fundamentals
+# Ključ-vrijednost baze podataka
+### Temelj Brzih i Skalabilnih Aplikacija
 
 ### Akademska godina 2024/2025
 Nikola Balić
@@ -14,520 +37,363 @@ nikola.balic@gmail.com
 github.com/nkkko
 
 ---
-## Zašto NoSQL?
+## Uvod
 
-### Ključni razlozi za rast NoSQL baza podataka
-
-- **Skalabilnost**
-- **Cijena**
-- **Fleksibilnost**
-- **Dostupnost**
-
----
-## Skalabilnost
-
-### Vertikalna vs. Horizontalna
-
-- **Scale Up:** 
-  - Dodavanje resursa postojećem poslužitelju
-  - Procesori, memorija, diskovi, mrežne kartice
-  - Ograničenja fizičkog hardvera
-  - Skupo
-
-- **Scale Out:**
-  - Dodavanje novih poslužitelja u klaster
-  - Fleksibilnije
-  - Teoretski neograničeno
-  - NoSQL je dizajniran za ovaj pristup
+- **Ključ-vrijednost (Key-Value) DB** najjednostavnija je skupina NoSQL baza podataka.
+-   Svaki zapis = **Jedinstveni Ključ** ➜ **Pripadajuća Vrijednost**.
+- Vrijednost može biti *string, broj, binarni podatak* … nema strogo definirane sheme.
+- Fokus na **jednostavnosti, brzini i fleksibilnosti** u pohrani i dohvaćanju.
+- Primjer analogije: tablica s dva stupca `ID` (= key) i `NAME` (= value).
 
 ---
-## Izazovi vertikalnog skaliranja
+## Kada (ne) koristiti K-V baze
 
-### Problemi Scale Up pristupa
-
-```
-                   ┌─────────────┐
-                   │             │
-                   │   Server    │
-                   │             │
-                   └─────────────┘
-                          ↓
-┌─────────────────────────────────────────────┐
-│                                             │
-│              Veći server                    │
-│                                             │
-└─────────────────────────────────────────────┘
-```
-
-- **Tehnička ograničenja:** Maksimum RAM, CPU, disk
-- **Prekidi u radu:** Nadogradnja često zahtijeva downtime
-- **Eksponencijalni troškovi:** Cijena raste disproporcionalno
+| ✔️ Pogodno za...                     | ❌ Manje pogodno za...                |
+| :----------------------------------- | :----------------------------------- |
+| ⚡ Brza čitanja/pisanja (npr. **Cache**) | 🔗 Složene upite i **JOIN**-ove       |
+| 👤 Korisničke **sesije**, profili     | 🏛️ Strogu **konzistenciju** (banke)   |
+| 📊 Nestrukturirani ili *BLOB* podaci | 📈 Dubinsku **analitiku** na podacima |
+| 📈 **Horizontalno skaliranje** (lako) |  ACID **transakcije** (rijetko)    |
+| 🎯 Dohvati po **točnom ključu**        | 🔍 **Pretraga po vrijednosti** (bez indeksa) |
 
 ---
-## Prednosti horizontalnog skaliranja
+## Prednosti
 
-### Benefiti Scale Out pristupa
-
-```
-┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐
-│ Server 1│  │ Server 2│  │ Server 3│  │ Server 4│
-└─────────┘  └─────────┘  └─────────┘  └─────────┘
-      ↓            ↓            ↓            ↓
-┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐
-│ Server 1│  │ Server 2│  │ Server 3│  │ Server 4│  │ Server 5│
-└─────────┘  └─────────┘  └─────────┘  └─────────┘  └─────────┘
-```
-
-- **Linearna skalabilnost:** Dodavanje resursa prema potrebi
-- **Visoka dostupnost:** Redundancija podataka
-- **Kontinuirani rad:** Održavanje bez prekida usluge
-- **NoSQL prednost:** Minimalne intervencije DBA
+1.  **🚀 Performanse:** Super brze operacije (često <1ms). Minimalna obrada.
+    *   _Primjer: Redis može >1M operacija/sec!_
+2.  **📈 Skalabilnost:** Lako dodavanje novih servera (horizontalno).
+3.  **🧩 Fleksibilnost:** Nema rigidne sheme, spremi što god trebaš.
+4.  **💰 Trošak:** Puno moćnih *open-source* rješenja (Redis, RocksDB...).
 
 ---
-## Troškovi i licenciranje
+## Nedostaci
 
-### Ekonomski faktori
-
-- **Relacijske baze podataka:**
-  - Visoke cijene licenci (Oracle, MS SQL Server)
-  - Različiti modeli licenciranja (po CPU, korisniku, poslužitelju)
-  - Predvidljivi troškovi uz predvidljivo opterećenje
-
-- **NoSQL baze podataka:**
-  - Mnoge su open-source (MongoDB, Cassandra, Redis)
-  - Pay-as-you-go modeli u cloudu
-  - Prilagodljivi troškovi za varijabilno opterećenje
+1.  **❓ Ograničeni Upiti:** Teško pretraživati po *vrijednosti* bez dodatnih indeksa. Zaboravi SQL `WHERE` klauzule na vrijednostima.
+2.  **💾 Veličina Vrijednosti:** Često ograničena (npr. par KB/MB po zapisu).
+3.  **🤔 Konzistentnost:** Često *eventualna* konzistentnost (CAP: Dostupnost > Konzistentnost). Nije idealno ako podaci *moraju* biti odmah točni svugdje.
+4.  **⛓️ Bez Transakcija:** Većina nema klasične ACID transakcije preko više ključeva.
 
 ---
-## Scenarij: Web aplikacija s promjenjivim opterećenjem
+## Mogućnosti i hibridni pristupi
 
-### Ekonomska prednost NoSQL-a
+🔑 K-V baze **sjaje** u kombinaciji s drugim bazama!
 
-```
-Promet                                     ▲
-                           ▲               │
-                           │               │
-                           │               │
-                   ▲       │       ▲       │
-         ▲         │       │       │       │
-         │         │       │       │       │
-─────────────────────────────────────────────▶
-         Jan      Apr      Jul     Oct     Dec
-```
+*   **Caching Sloj:** Najčešći podaci u brzom K-V (Redis), ostatak u RDBMS/drugom NoSQL-u.
+*   **"Polyglot Persistence":** Pravi alat za pravi posao. Npr. korisnički podaci u Document DB, sesije u K-V, logovi u TimeSeries DB.
+*   **Izbjegavaj "Data Silo":** Razmišljaj o cijeloj arhitekturi.
 
-- **Sezonski vrhunci:** Praznici, promocije, događaji
-- **Teško predviđanje:** Budući rast, viralnost
-- **Prednost NoSQL cloud rješenja:** Plaćanje samo za korištene resurse
+> **Ključno:** Odaberi bazu prema **potrebama dijela aplikacije**, ne jednu za sve!
 
 ---
-## Fleksibilnost sheme
 
-### Rigidni vs. prilagodljivi model
-
-- **Relacijske baze podataka:**
-  - Fiksna shema (tablice, stupci)
-  - ALTER TABLE operacije mogu biti skupe
-  - Migracije često zahtijevaju downtime
-  - Idealne za stabilne, dobro definirane podatke
-
-- **NoSQL baze podataka:**
-  - Schemaless ili fleksibilna shema
-  - Dinamičko dodavanje novih polja
-  - Brza prilagodba promjenama poslovnih zahtjeva
+| Rang | Sustav             | Tip Pohrane               | Ključna Značajka/Upotreba        |
+| :--- | :----------------- | :------------------------ | :------------------------------- |
+| 1    |  **Redis**  | In-memory (+disk)         | ⚡ Brzina, Cache, Pub/Sub       |
+| 2    |  **Amazon DynamoDB** | Cloud, on-disk            | ☁️ AWS, Skalabilnost, Upravljan |
+| 3    |  **Dragonfly** | In-memory                 | 🚀 Redis kompatibilan, performanse |
+| 4    |  **Riak**   | Masterless, on-disk       | 🛡️ Visoka dostupnost (legacy?)   |
+| 5    |  **RocksDB** | **Embedded**, on-disk       | 🏗️ Engine za druge baze (MyRocks)|
+| 6    |  **Workers KV** | Edge-distributed          | 🌍 Globalna distribucija (CF)    |
 
 ---
-## Primjer: E-commerce katalog proizvoda
+## Primjeri proizvodnih sustava
 
-### Evolucija sheme podataka
+*   **Redis:** Cache slojevi (web stranice, API-ji), Session store (pamti tko si logiran), Rate limiting, Pub/Sub (chatovi, notifikacije).
+    *   *Twitter, GitHub, Stack Overflow...*
+*   **DynamoDB:** Backend za mnoge AWS servise, IoT platforme, Gaming (leaderboards).
+    *   *Amazon.com (košarica!), Lyft, Duolingo...*
+*   **RocksDB:** "Ispod haube" mnogih sustava (Facebook, CockroachDB, TiKV).
+*   **Cloudflare Workers KV:** Brze globalne postavke, A/B testiranje, konfiguracija na rubu mreže.
 
-**Relacijski pristup:**
-```sql
--- Inicijalno
-CREATE TABLE Products (
-  ID INT, Name VARCHAR(100), Price DECIMAL(10,2)
-);
+> Arhitektura i primjena: https://architecturenotes.co/redis/
 
--- Kasnije dodavanje polja
-ALTER TABLE Products ADD COLUMN Weight DECIMAL(10,2);
-ALTER TABLE Products ADD COLUMN Dimensions VARCHAR(50);
-```
+---
+## Od niza do K-V baze
 
-**NoSQL pristup (MongoDB):**
-```javascript
-// Inicijalno
-db.products.insert({ name: "Laptop", price: 999.99 });
+1.  **Obični Niz (Array):** Indeks = broj (0, 1, 2...). Elementi istog tipa.
+    `["jabuka", "kruška", "šljiva"]`
+2.  **Asocijativni Niz (Map/Dict):** Indeks = bilo koji ključ. Vrijednosti razne.
+    `{"ime": "Ana", "godine": 30, "grad": "Zagreb"}` (u memoriji!)
+3.  **K-V Baza:** Kao asocijativni niz, ali...
+    *   **💾 Trajna** (na disku/cloudu)
+    *   **☁️ Distribuirana** (na više servera)
+    *   **📈 Skalabilna**
 
-// Kasnije
-db.products.insert({ 
-  name: "Monitor", 
-  price: 299.99, 
-  weight: 5.4, 
-  dimensions: "24x18x9",
-  features: ["HDR", "4K", "HDMI 2.1"]
-});
+---
+
+```python
+# Python dict (mapa u memoriji)
+cache = {}
+cache["user:123:session"] = "{'token': 'xyz', 'expires': ...}"
+cache["product:456:price"] = 99.99
 ```
 
 ---
-## Dostupnost podataka
+## Pohrana podataka
 
-### Očekivanja korisnika u digitalnom svijetu
-
-- **24/7 pristup:** Korisnici očekuju stalnu dostupnost
-- **Globalna publika:** Različite vremenske zone
-- **Posljedice nedostupnosti:** 
-  - Gubitak prihoda
-  - Narušavanje povjerenja korisnika
-  - Negativni PR
+*   **In-Memory (RAM):** 🚀 Ekstremno brzo! (npr. Redis, Dragonfly)
+    *   Ograničen kapacitet (koliko RAM-a imaš).
+    *   Trajnost? Opcionalno (snapshot, AOF log). Rizik gubitka podataka!
+*   **On-Disk (SSD/HDD):** 💾 Veći kapacitet, trajno po prirodi. (npr. DynamoDB, RocksDB)
+    *   Sporije od RAM-a (mreža + disk I/O).
+*   **Kombinirano:** RAM za brzinu, Disk za trajnost/veći kapacitet.
 
 ---
-## Dostupnost u NoSQL bazama podataka
+## Osnovne operacije API-ja
 
-### Arhitektura za visoku dostupnost
+| Operacija     | Primjer (Redis)     | Opis                               | Ikona |
+| :------------ | :------------------ | :--------------------------------- | :---- |
+| `PUT` / `SET` | `SET user:123 Ana`  | Spremi ili ažuriraj vrijednost     | 💾    |
+| `GET`         | `GET user:123`      | Dohvati vrijednost za ključ        | 🔍    |
+| `DELETE`      | `DEL user:123`      | Ukloni zapis (ključ i vrijednost) | 🗑️    |
 
-```
-         ┌─────────┐     ┌─────────┐     ┌─────────┐
-         │ Node 1  │     │ Node 2  │     │ Node 3  │
-         └─────────┘     └─────────┘     └─────────┘
-               │               │               │
-               └───────────────┼───────────────┘
-                               │
-                         ┌─────────────┐
-                         │  Klijent    │
-                         └─────────────┘
-```
-
-- **Distribuirani dizajn:** Podaci replicirani preko više čvorova
-- **Automatski failover:** Ako jedan čvor padne, drugi preuzimaju
-- **No Single Point of Failure:** Redundancija na više razina
+> **Naprednije:** Mnoge nude `INCR` (povećaj broj), `EXPIRE` (postavi vijek trajanja), `SCAN` (iteriraj kroz ključeve - oprezno!).
 
 ---
-## Upravljanje podacima u raspodijeljenim bazama
 
-### Ključni zahtjevi
+## Brzina vs. Kapacitet: In-Memory vs. On-Disk
 
-- **Trajna pohrana:** Podaci moraju opstati usprkos kvarovima
-- **Konzistentnost:** Svi čvorovi moraju vidjeti iste podatke
-- **Dostupnost:** Sustav mora odgovarati na zahtjeve
-
----
-## Konzistentnost podataka
-
-### Primjer distribucije sredstava
-
-```
-Alice ima 1000€ na računu
-
-         ┌─────────┐          ┌─────────┐
-         │ Server 1│          │ Server 2│
-         │ Stanje: │          │ Stanje: │
-         │  1000€  │          │  1000€  │
-         └─────────┘          └─────────┘
-                ↓                  ↑
-                └──── Replikacija ─┘
-
-Ako Alice podigne 200€, oba servera moraju ažurirati stanje na 800€
-```
-
-- **Izazov relacijskih baza:** Distribucija transakcija
-- **Izazov NoSQL baza:** Balansiranje konzistentnosti i dostupnosti
+| Karakteristika | In-Memory (npr. Redis) | On-Disk (npr. RocksDB) |
+| :------------- | :--------------------- | :--------------------- |
+| **Latencija**  | 📉 **Mikro**sekunde (µs) | 🐌 **Mili**sekunde (ms)  |
+| **Kapacitet**  | Ograničen **RAM**-om (GB) | Ograničen **Diskom** (TB+) |
+| **Trajnost**   | Opcionalna (snapshot/AOF)| ✅ Ugrađena (trajna)     |
+| **Cijena/GB**  | 💰💰 Skuplje             | 💰 Jeftinije             |
+| **Tipična Uloga**| Cache, Sesije, Brojači | Glavna pohrana, Engine   |
 
 ---
-## Two-Phase Commit
+## Upravljanje memorijom (evikcija)
 
-### Osiguravanje konzistentnosti u distribuiranim sustavima
+Kod **In-Memory** baza, memorija je ograničena! Što kad se napuni?
 
-```
-   ┌────────────┐             ┌────────────┐
-   │ Koordinator│             │ Sudionici  │
-   └────────────┘             └────────────┘
-         │                          │
-         │─── 1. Pripremi se ──────▶│
-         │                          │
-         │◀── 2. Spreman/Odbijen ───│
-         │                          │
-         │─── 3. Commit/Rollback ──▶│
-         │                          │
-         │◀── 4. Potvrda ───────────│
-```
-
-- **Faza 1:** Koordinator pita sve čvorove jesu li spremni za commit
-- **Faza 2:** Ako su svi spremni, izvršava se commit; inače rollback
+*   **Eviction Policy** (Pravilo Izbacivanja): Odlučuje koji ključ izbaciti.
+    *   **LRU (Least Recently Used):** Izbaci najmanje korišteni ključ. (Najčešći)
+    *   **LFU (Least Frequently Used):** Izbaci najmanje *često* korišteni ključ.
+    *   **Random:** Izbaci nasumični ključ.
+    *   **TTL (Time To Live):** Izbaci ključeve kojima je istekao `EXPIRE`.
+*   **Konfiguracija:** Npr. `maxmemory-policy` u Redis-u.
 
 ---
-## Eventual Consistency
+## Skalabilnost – replikacija
 
-### Kompromis za bolje performanse
+**Cilj:** Povećati dostupnost (ako jedan server padne) i performanse čitanja.
 
-```
-Alice ima 1000€, podiže 200€ na Serveru 1
+### Model 1: Master-Slave (Leader-Follower)
 
-   ┌─────────┐               ┌─────────┐
-   │ Server 1│               │ Server 2│
-   │ Stanje: │               │ Stanje: │
-   │   800€  │               │  1000€  │
-   └─────────┘               └─────────┘
-         │                        │
-         │                        │
-         └─── Replikacija (async)─┘
-```
-
-- **Privremena nekonzistentnost:** Server 2 nije odmah ažuriran
-- **Eventulna konzistentnost:** Sustav će postati konzistentan
-- **Prednost:** Brži odziv, veća dostupnost
+*   Jedan **Master** prima sva **pisanja**.
+*   **Slave(ovi)** kopiraju podatke s Mastera i služe za **čitanja**.
+*   **Prednosti:** Jednostavno, odlično za *read-heavy* sustave.
+*   **Mana:** Master je *Single Point of Failure* (treba Sentinel/automatski failover).
 
 ---
-## CAP teorem
 
-### Fundamentalni kompromis
+### Masterless (peer-to-peer)
 
-![bg right:50% 80%](https://miro.medium.com/v2/resize:fit:1400/1*rxTP-_STj-QRDt1X9fdVlA.png)
-
-- **Consistency (Konzistentnost)**
-- **Availability (Dostupnost)**
-- **Partition Tolerance (Otpornost na particioniranje)**
-
-"U distribuiranom sustavu možete imati samo dva od tri svojstva"
+*   **Svi čvorovi su ravnopravni** (nema Mastera).
+*   Podaci se repliciraju na **N** susjednih čvorova (često koristeći *Consistent Hashing Ring*).
+*   Pisanje/čitanje može ići na **bilo koji** čvor.
+*   **Prednosti:** Bolja dostupnost (nema SPOF), bolje za *write-heavy*.
+*   **Mana:** Složenije upravljanje konzistencijom (konflikti zapisa).
+*   *Primjeri: Riak (stariji), DynamoDB stil.*
 
 ---
-## CAP teorem u praksi
 
-### Primjer: A+P (AP sustavi)
-
-```
-   ┌─────────┐   Mrežna     ┌─────────┐
-   │ Server 1│   particija  │ Server 2│
-   │ Stanje: │   (prekid)   │ Stanje: │
-   │   800€  │ X─────────X  │  1000€  │
-   └─────────┘              └─────────┘
-```
-
-- **Dostupnost:** Sustav nastavlja odgovarati na zahtjeve
-- **Partition Tolerance:** Sustav nastavlja raditi usprkos prekidu
-- **Nekonzistentnost:** Server 1 i Server 2 prikazuju različite podatke
+![height:550](images/replication_models.png)
 
 ---
-## CAP teorem u praksi
+## Kako Raspodijeliti Ključeve? Hashiranje! 🔢
 
-### Primjer: C+P (CP sustavi)
+**Problem:** Kako znati na koji server (particiju/čvor) spremiti `user:123`?
 
-```
-   ┌─────────┐   Mrežna     ┌─────────┐
-   │ Server 1│   particija  │ Server 2│
-   │ Stanje: │   (prekid)   │ Stanje: │
-   │   ???   │ X─────────X  │   ???   │
-   └─────────┘              └─────────┘
-```
-
-- **Konzistentnost:** Sustav osigurava da svi čvorovi vide iste podatke
-- **Partition Tolerance:** Sustav nastavlja raditi usprkos prekidu
-- **Nedostupnost:** Neki zahtjevi će biti odbijeni do ponovnog spajanja
+**Rješenje:** **Hash Funkcija**
+1.  Uzmi ključ (`user:123`).
+2.  Primijeni hash funkciju (npr. SHA-1, MurmurHash) -> dobiješ broj (hash).
+3.  `particija = hash(ključ) mod N` (gdje je N broj particija/servera).
 
 ---
-## ACID vs. BASE
 
-### Dva pristupa konzistentnosti podataka
-
-**ACID (Relacijske BP):**
-- **Atomicity:** Transakcija je sve ili ništa
-- **Consistency:** Transakcija prelazi iz jednog valjanog stanja u drugo
-- **Isolation:** Transakcije su izolirane jedna od druge
-- **Durability:** Potvrđene promjene su trajne
-
-**BASE (NoSQL BP):**
-- **Basically Available:** Sustav odgovara na većinu zahtjeva
-- **Soft state:** Stanje sustava može se mijenjati s vremenom
-- **Eventually consistent:** Sustav će s vremenom postati konzistentan
+**Napredno: Consistent Hashing**
+*   Problem s `mod N`: Ako dodaš/ukloniš server (promijeniš N), *većina* ključeva mora promijeniti lokaciju! 😱
+*   **Consistent Hashing:** Minimizira premještanje ključeva kad se broj servera mijenja. Ključevi se mapiraju na "krug", serveri također. Ključ ide na prvi server "desno" na krugu.
 
 ---
-## BASE: Basically Available
+## Kako Nazivati Ključeve? Pametno! ✨
 
-### Dostupnost kao prioritet
+Dobar dizajn ključeva je **KRITIČAN**!
 
-- **Načelna dostupnost:** Sustav je uvijek dostupan za upite
-- **Parcijalni kvarovi:** Dio sustava može biti nedostupan
-- **Primjer:** NoSQL baza na 10 poslužitelja; ako jedan otkaže, 90% upita i dalje uspijeva
+**Konvencija (primjer):** `<entity>:<id>[:<attribute>]`
 
-```
-  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐
-  │Node 1│  │Node 2│  │Node 3│  │Node 4│  │Node 5│
-  └──────┘  └──────┘  └──────┘  └──────┘  └──────┘
-  
-  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐
-  │Node 6│  │Node 7│  │Node 8│  │Node 9│  │Node10│
-  └──────┘  └──X───┘  └──────┘  └──────┘  └──────┘
-               ↑
-            Kvar
-```
+*   `user:123` (JSON s podacima o korisniku 123)
+*   `user:123:name` (samo ime korisnika 123 - ako atomarno trebaš)
+*   `product:456:details`
+*   `order:2024-05-15:items`
+*   `session:xyz789abc`
 
 ---
-## BASE: Soft State
 
-### Fleksibilnost stanja sustava
-
-- **Promjenjivo stanje:** Stanje sustava može se mijenjati s vremenom
-- **"Istjecanje" podataka:** Podaci mogu postati nevažeći ako se ne osvježe
-- **Kontinuirano ažuriranje:** Noviji podaci zamjenjuju stare
-- **Optimistički pristup:** Pretpostavka da će ažuriranja rijetko stvarati konflikte
+**Zašto je važno?**
+*   **Organizacija:** Lakše za razumijevanje i debugiranje.
+*   **Sprječavanje Kolizija:** `user:123` i `order:123` su različiti.
+*   **Upiti:** Omogućava dohvaćanje povezanih podataka (npr. `SCAN` s uzorkom `user:123:*`).
+*   **Sharding:** Pomaže u grupiranju povezanih podataka na iste particije (ako hash ovisi o dijelu ključa).
 
 ---
-## BASE: Eventually Consistent
 
-### Naknadna konzistentnost
-
-- **Privremena nekonzistentnost:** Kratki periodi kada različiti čvorovi vide različite podatke
-- **Mehanizmi replikacije:** Osiguravaju da će svi čvorovi eventualno imati iste podatke
-- **Brzina synchronizacije:** Ovisi o mrežnoj latenciji, opterećenju sustava i drugim faktorima
-- **Trade-off:** Žrtvovanje trenutne konzistentnosti za veću dostupnost i performanse
+![width:1100](images/key_prefixes.png)
 
 ---
-## Optimizacija izbora baze podataka
+## Pretraživanje po vrijednosti
 
-### Kako odabrati pravu bazu podataka?
-
-1. **Analiza zahtjeva aplikacije:**
-   - Potrebna konzistentnost?
-   - Važnost dostupnosti?
-   - Očekivano opterećenje?
-   
-2. **Tipovi podataka i upita:**
-   - Strukturirani vs. polustrukturirani podaci
-   - Jednostavni upiti vs. kompleksni joins
-   
-3. **Skalabilnost i budući rast:**
-   - Predviđeni rast podataka
-   - Očekivana brzina rasta korisnika
+1.  **Aplikacijska Logika:** Dohvati *sve* (ili puno) podataka (`SCAN` - opasno!) i filtriraj u **svom kodu**. 🐢 (Sporo i neučinkovito za velike skupove).
+2.  **Sekundarni Indeksi (Ručno):** Sam kreiraš dodatne K-V parove koji služe kao indeks.
+    *   Npr., za traženje korisnika po emailu:
+        *   Glavni podatak: `user:123 -> {"name": "Ana", "email": "ana@example.com"}`
+        *   Indeks: `email:ana@example.com -> user:123`
+    *   Moraš **ažurirati oba** pri promjeni! Kompleksno za održavanje.
 
 ---
-## NoSQL tipovi baza podataka
 
-### Glavni modeli podataka
-
-- **Ključ-vrijednost:** Jednostavno mapiranje (Redis, DynamoDB)
-- **Dokumentne:** Fleksibilni JSON dokumenti (MongoDB, Couchbase)
-- **Stupčaste:** Optimizirane za stupce podataka (Cassandra, HBase)
-- **Graf:** Čvorovi i veze (Neo4j, JanusGraph)
-- **Vektorske:** Za duboko učenje (Pinecone, Weaviate)
+3.  **Integrirani Indeksi (Ako Baza Podržava):** Neke K-V baze imaju dodatke za ovo (npr. **Redis Search**). Kreiraju indekse za tebe.
+    *   Puno **lakše**, ali troši više **memorije/resursa**.
 
 ---
-## Ključ-vrijednost baze podataka
 
-### Jednostavnost i brzina
-
-```
-┌─────────────┬────────────────────────┐
-│    Ključ    │       Vrijednost       │
-├─────────────┼────────────────────────┤
-│ user:1001   │ {"name": "Ana Horvat"} │
-├─────────────┼────────────────────────┤
-│ session:xyz │ {"valid_until": "..."} │
-├─────────────┼────────────────────────┤
-│ counter:hit │ 42768                  │
-└─────────────┴────────────────────────┘
-```
-
-- **Jednostavnost:** Parovi ključ-vrijednost
-- **Performanse:** Vrlo brze operacije dohvata po ključu
-- **Primjene:** Sesije, keš, brojači, postavke
+![height:600](images/secondary_index_flow.png)
 
 ---
-## Dokumentne baze podataka
+## Ključni Pojmovi
 
-### Fleksibilnost strukture
-
-```json
-{
-  "_id": "123",
-  "name": "Ana Horvat",
-  "email": "ana@example.com",
-  "orders": [
-    { "id": "ord1", "items": ["laptop", "mouse"], "total": 1200 },
-    { "id": "ord2", "items": ["keyboard"], "total": 150 }
-  ],
-  "address": {
-    "street": "Vukovarska 123",
-    "city": "Split"
-  }
-}
-```
-
-- **Ugniježđeni podaci:** Kompleksna struktura u jednom dokumentu
-- **Fleksibilna shema:** Dokumenti iste kolekcije mogu imati različitu strukturu
-- **Upiti po atributima:** Moguće pretraživanje po svim poljima
+| Pojam             | Opis                                                                   | Povezano sa...         |
+| :---------------- | :--------------------------------------------------------------------- | :--------------------- |
+| **Namespace**     | Logička grupa K-V parova (kao folder). Izbjegava konflikte imena.        | Dizajn Ključeva        |
+| **Bucket / Table**| Terminologija nekih baza (npr. Riak, DynamoDB) za namespace.           | Terminologija          |
+| **Partition / Shard** | Podskup podataka na jednom čvoru/serveru.                             | Hashiranje, Skalabilnost|
+| **Replication**   | Kopiranje podataka na više čvorova radi dostupnosti/performansi.         | Skalabilnost           |
+| **Consistency Model** | Pravila o tome kada će svi čvorovi vidjeti najnoviji zapis (Strong, **Eventual**...). | Replikacija, Nedostaci |
 
 ---
-## Stupčaste baze podataka
-
-### Optimizacija za analitiku
-
-```
-Column Family: "user_profile"
-┌────┬────────┬────────┬───────┬─────────┐
-│ ID │  Name  │ Email  │ City  │ Country │
-├────┼────────┼────────┼───────┼─────────┤
-│ 1  │ Ana    │ a@e.com│ Split │ Croatia │
-│ 2  │ Marko  │ m@e.com│ Zagreb│ Croatia │
-└────┴────────┴────────┴───────┴─────────┘
-
-Column Family: "user_orders"
-┌────┬───────────┬────────────┐
-│ ID │ Order_Ids │ Last_Order │
-├────┼───────────┼────────────┤
-│ 1  │ [5,8,12]  │ 2023-06-12 │
-│ 2  │ [3,7]     │ 2023-05-30 │
-└────┴───────────┴────────────┘
-```
-
-- **Column families:** Grupiranje povezanih stupaca
-- **Rijetke matrice:** Efikasna pohrana za milijune stupaca
-- **Analitičke operacije:** Optimizirane za agregacije po stupcima
+| Pojam             | Opis                                                                   | Povezano sa...         |
+| :---------------- | :--------------------------------------------------------------------- | :--------------------- |
+| **Eviction**      | Proces izbacivanja podataka (obično iz memorije) kad ponestane prostora. | In-Memory Baze       |
+| **Serialization** | Proces pretvaranja objekta (npr. JSON) u niz bajtova za spremanje kao vrijednost. | Fleksibilnost          |
 
 ---
-## Graf baze podataka
+## Studija slučaja – Praćenje pošiljaka
 
-### Mreže povezanih podataka
+*   **Aplikacija:** Praćenje pošiljaka (~10k korisnika).
+*   **Problem:** Treba brzo prikazati status zadnjih pošiljaka na početnom ekranu. 90% operacija su **čitanja**.
+*   **Rješenje:** **Redis** kao K-V store.
+    *   **Ključ:** Broj pošiljke (npr. `track:ACC12345`).
+    *   **Vrijednost:** JSON objekt sa statusom, lokacijom, povijesti.
+    *   **Prefiksi za organizaciju:** `user:<id>`, `track:<id>`, `alert:<id>`.
 
-```
-    ┌───────┐       FOLLOWS      ┌───────┐
-    │ Ana   │─────────────────→ │ Marko │
-    └───────┘                   └───────┘
-        ↑                           │
-        │                           │
-    FOLLOWS                      FOLLOWS
-        │                           │
-        │                           ↓
-    ┌───────┐        LIKES       ┌───────┐
-    │ Ivana │←─────────────────  │ Petar │
-    └───────┘                    └───────┘
-```
+---
 
-- **Čvorovi i veze:** Prirodno modeliranje odnosa
-- **Optimizacija putanja:** Brzo pretraživanje povezanosti
-- **Primjene:** Društvene mreže, preporuke, znanje, prijevare
+*   **Zašto K-V?**
+    *   ⚡ **Brzina:** Trenutno učitavanje statusa po poznatom ključu (broju pošiljke).
+    *   📈 **Skalabilnost:** Lako dodati Redis replike ako broj čitanja poraste.
+    *   🧩 **Fleksibilnost:** JSON vrijednost lako prima nove atribute statusa.
+
+---
+## POnavljanje 1/3
+
+1.  **K-V Baza vs. Mapa:** K-V baza je **trajna** (podaci prežive restart), **distribuirana** (na više servera) i **skalabilna**, dok je mapa u memoriji programa, privremena i ograničena resursima tog procesa.
+2.  **Kada je K-V odličan:**
+    *   **Caching:** Ubrzavanje dohvata često korištenih podataka.
+    *   **Korisničke sesije:** Brzo spremanje i dohvaćanje podataka o logiranim korisnicima.
+    *   (Ostali: Leaderboards, Rate Limiting, Konfiguracije...)
+
+---
+## POnavljanje 2/3
+3.  **Consistent Hashing:** Minimizira broj ključeva koje treba premjestiti kada se doda ili ukloni server, za razliku od `mod N` gdje se većina ključeva mora remapirati, što uzrokuje veliki promet i nedostupnost.
+4.  **Mana eventualne konzistentnosti:** Različiti klijenti mogu vidjeti **različite (stare) verzije podataka** u kratkom periodu nakon ažuriranja. Nije prikladno za operacije koje zahtijevaju trenutnu, globalnu točnost (npr. stanje bankovnog računa).
+
+---
+
+## Ponavljanje 2/2
+
+5.  **Master-Slave:** Jedan server (Master) prima sva pisanja, dok ga drugi (Slaveovi) kopiraju i služe za čitanja. Rizik: Ako **Master padne**, pisanje staje (osim ako nema automatskog failovera - Sentinela).
+6.  **Ručna pretraga po emailu:** Kreirati **dodatni K-V zapis** gdje je **ključ email**, a **vrijednost je ID korisnika** (npr. `email:ana@ex.com -> user:123`). Pri upitu po emailu, prvo pročitati ID iz ovog indeksa, pa onda dohvatiš `user:123`. **Održavanje je ključno!**
+7.  **Eviction Policy:** Pravilo koje određuje koji će se podaci **izbaciti iz memorije** kada se ona napuni. Važna je jer sprječava pad baze zbog nedostatka memorije (OOM) i utječe na performanse (ako izbaci "krive" podatke).
 
 ---
 ## Zaključak
 
-### Glavni takeaways
+K-V Baze: **Jednostavne, Brze, Skalabilne** 🚀
 
-1. **NoSQL nije zamjena, već nadopuna relacijskih baza**
-2. **Razlozi za NoSQL: skalabilnost, cijena, fleksibilnost, dostupnost**
-3. **CAP teorem: kompromis između konzistentnosti i dostupnosti**
-4. **BASE vs. ACID: različiti pristupi konzistentnosti**
-5. **Odabir baze podataka ovisi o specifičnim zahtjevima aplikacije**
-
----
-## Pitanja?
-
-### Sada je vrijeme za vaša pitanja!
-
-- Nejasnoće oko koncepata?
-- Primjeri iz prakse?
-- Specifični scenariji primjene?
+*   Idealne za **specifične probleme**: cache, sesije, brzi dohvati po ID-u.
+*   **Nisu** "one-size-fits-all" rješenje (ograničeni upiti, eventualna konzistentnost).
+*   Prava snaga dolazi iz **kombiniranja** s drugim bazama podataka.
+*   **Dizajn ključeva** i razumijevanje **trade-offova** (brzina vs. konzistentnost vs. kapacitet) su ključni!
 
 ---
-## Hvala na Pažnji!
 
-Kontakt informacije:
-Nikola Balić
-nikola.balic@gmail.com
-github.com/nkkko
+## Engram v3 – Studija slučaja 🧠🤖
+
+*Real-time suradnja AI agenata uz nisku latenciju i trajnu pohranu*
+
+---
+## Zahtjevi sustava Engram v3
+
+- **Vrlo niska latencija:** < 5 ms po operaciji (cilj: < 1 ms zapis, < 2 ms čitanje)
+- **Trajnost stanja:** podaci moraju preživjeti restart (WAL)
+- **Real-time fan-out:** promjene se odmah emitiraju svim agentima
+- **Fleksibilni podaci:** "WorkUnit" može biti poruka, kod, rezultat alata…
+
+**Pitanje:** Zašto standardna RDBMS ili čak mrežni K-V (poput Redis-a preko mreže) možda nisu dovoljno brzi?
+
+---
+## Zašto KV i zašto BeaverDB?
+
+- **Performanse:** ugrađena (embedded) KV BP pisan u Go → nema mrežne latencije
+- **Jednostavna distribucija:** bez vanjske ovisnosti, cross-compile friendly
+- **Trajnost:** Write-Ahead Log + ACID transakcije
+- **Shema-less:** raznovrsni entiteti serijalizirani kao JSON/Protobuf
+
+---
+## Organizacija podataka (prefiksi)
+
+Kako organizirati različite tipove podataka u jednoj K-V bazi? **Prefiksi Ključeva!**
+
+```go
+const (
+    prefWork  = "wu:"
+    prefCtx   = "ctx:"
+    prefLock  = "lock:"
+    prefMeta  = "meta:"
+)
+// Primjeri:
+// wu:<uuid>      -> []byte(WorkUnit)
+// ctx:<id>       -> []byte(Context)
+```
+
+- **Ključ = Prefiks + ID**  → logičke "kolekcije" unutar jedne KV BP
+
+---
+## Sekundarno indeksiranje bez SQL-a
+
+- **Vremenski indeks:** `ts:<ctx>:<unixns>:<wuID>` ➜ range scan po vremenu
+- **Meta indeks:** `meta:<key>:<val>:<wuID>` ➜ filtriranje po oznakama
+- **Tekst indeks:** `text:<word>:<wuID>` ➜ jednostavno pretraživanje riječi
+
+→ Dizajn ključeva omogućuje složene upite koristeći samo `PrefixScan`.
+
+---
+## Optimizacije performansi
+
+- Povećani *MemTable* i *ValueLog* buffersi
+- `SyncWrites = false` + periodički `fsync` → brži upis uz prihvatljiv rizik
+- Vlastiti LRU cache sloj iznad BeaverDB-a
+- Periodične kompakcije & GC za čist i brz storage
+
+---
+## Lekcije iz Engram v3
+
+1.  **Dizajn Ključa = Dizajn Upita:** Bez dobrih prefiksa i strukture ključa, nema efikasnog dohvaćanja bez full scan-a.
+2.  **Embedded KV = Jednostavnost:** Nema mrežne latencije, lakši deployment, manje pokretnih dijelova. Idealno za performanse i samostalne aplikacije.
+3.  **Tuning je OBAVEZAN:** Zadane postavke rijetko zadovoljavaju ekstremne performanse (<1ms). Razumijevanje parametara baze je ključno.
+
+---
+
+4.  **ACID + Brzina su Mogući:** Moderni embedded KV engine-i (kao BadgerDB/BeaverDB, RocksDB) nude oboje uz pažljiv dizajn.
+5.  **KV NIJE Ograničenje:** Uz pametan dizajn ključeva i eventualno dodatne indekse, podržava i kompleksnije scenarije i real-time rad.
