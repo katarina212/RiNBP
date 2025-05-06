@@ -44,8 +44,8 @@ yarn-debug.log
 yarn-error.log
 
 # MARP exported files
-lectures/*/*.pdf
-lectures/*/*.pptx
+# lectures/*/*.pdf
+# lectures/*/*.pptx
 
 # Data files
 data/raw/*
