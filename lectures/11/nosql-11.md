@@ -5,7 +5,7 @@ paginate: true
 ---
 
 # Raspodijeljene i nerelacijske baze podataka
-# Dokument baze podataka
+# Graf baze podataka
 
 IZVOR: Sullivan, D. (2015). NoSQL for mere mortals. Addison-Wesley Professional
 
@@ -13,558 +13,718 @@ IZVOR: Sullivan, D. (2015). NoSQL for mere mortals. Addison-Wesley Professional
 
 ## Sadržaj
 
-- Uvod u dokument baze podataka
-- Usporedba relacijskih i dokument baza podataka
-- Dokumenti i JSON format
-- Zbirke (Collections)
-- Dizajn dokument baza podataka
-- Horizontalno particioniranje (Sharding)
-- Operacije na dokument bazama
-- Primjer slučaja korištenja: TransGlobal Transport and Shipping
+- Uvod u graf baze podataka
+- Teorija grafova i ključni koncepti
+- Vrste grafova i njihova primjena
+- Svojstva grafova i analiza
+- Dizajniranje graf baza podataka
+- Upitni jezici za graf baze
+- Primjeri korištenja i implementacije
 
 ---
 
-## Uvod u dokument baze podataka
+## Zašto su grafovi važni?
 
-- Vrsta NoSQL (nerelacijskih) baza podataka
-- Podatke pohranjuje u fleksibilnom, polu-strukturiranom formatu - **dokument**
-- Najpopularnije implementacije: MongoDB, Couchbase, Firestore, Amazon DocumentDB
+Graf baze podataka idealne su za sljedeće slučajeve:
+- Modeliranje podataka u kemiji i biologiji
+- Društvene mreže
+- Web (povezanost stranica)
+- Hijerarhijski podaci
+- Mreže (prometne, komunikacijske, itd.)
 
-![bg right:40% 80%](https://db-engines.com/en/ranking/document+store)
-
----
-
-## Relacijske vs dokument baze podataka
-
-Pet ključnih razlika:
-1. Model podataka
-2. Shema
-3. Upiti
-4. Skalabilnost
-5. Integritet podataka i transakcije
+![bg right:40% 80%](https://db-engines.com/en/ranking/graph+dbms)
 
 ---
 
-## 1. Model podataka
+## Graf baze podataka
 
-**Relacijske baze podataka:**
-- Koriste tabularni model
-- Podaci organizirani u predefiniranoj shemi
-- Tablice, redci i stupci
-- Odnosi između entiteta izraženi preko stranih ključeva
+- Temelje se na teoriji grafova
+- Specijalizirane za analizu veza i poveznica između entiteta
+- Primjenjive u mnogim područjima
 
-**Dokument baze podataka:**
-- Dokument-orijentirani podatkovni model
-- Podaci pohranjeni kao fleksibilni i samostalni dokumenti
-- Svaki dokument može imati svoju strukturu
-- Odnosi mogu biti ugnježđeni unutar dokumenata
+**Ključna svojstva grafa:**
+- Svaki vrh je jedinstven
+- Svaki vrh ima skup ulaznih i izlaznih bridova
+- Svaki vrh/brid ima skup svojstava
+- Svaki brid ima oznaku koji definira vezu između dva vrha
 
 ---
 
-## 2. Shema
+## Što je graf?
 
-**Relacijske baze podataka:**
-- Zahtijevaju fiksnu shemu
-- Struktura i tipovi podataka definirani prije unosa podataka
-- Promjena sheme često zahtijeva migracije ili operacije izmjene sheme
+- Matematički objekt koji se sastoji od:
+  - vrhova (vertices) – ponekad se nazivaju i čvorovima
+  - bridova (edges)
 
-**Dokument baze podataka:**
-- Fleksibilna shema ("schema-less" ili "schema-flexible")
-- Svaki dokument može imati vlastitu strukturu
-- Polja unutar dokumenata mogu varirati
-- Lakša prilagodba promjenjivim zahtjevima bez potrebe za strogim migracijama
-
----
-
-## 3. Upiti
-
-**Relacijske baze podataka:**
-- Koriste SQL jezik
-- Omogućuju složene upite (JOIN, agregatne funkcije, filtriranje)
-- Standardizirani pristup kroz SQL
-
-**Dokument baze podataka:**
-- Vlastiti jezik za upite ili API
-- Upiti se izvode na razini dokumenta
-- Mnoge dokument BP podržavaju napredne mogućnosti:
-  - Indeksiranje
-  - Pretraga teksta
-  - Geoinformacijske upite
+- Vrhovi mogu predstavljati "bilo što", npr.:
+  - Gradove (povezani cestama)
+  - Zaposlenike u tvrtki (radi s drugim zaposlenicima)
+  - Električne mreže (spojene na druge mreže)
+  - Proteine (interakcija s drugim proteinima)
 
 ---
 
-## 4. Skalabilnost
+## Graf - primjer
 
-**Relacijske baze podataka:**
-- Dizajnirane za vertikalno skaliranje
-- Povećanje hardverskih resursa (procesor, memorija)
-- Horizontalno skaliranje može biti složenije
-- Zahtijeva tehnike particioniranja podataka
+- Primjer jednostavnog grafa s dva vrha i jednim bridom
+- Veze mogu biti:
+  - Vidljive fizičke veze (ceste između gradova)
+  - Kratke i manje vidljive (prijenos bakterija između osoba)
+  - Bez fizičke veze (odnos šef-zaposlenik)
 
-**Dokument baze podataka:**
-- Prikladne za horizontalno skaliranje
-- Mogu distribuirati podatke na više servera ili klastera
-- Lako skaliranje dodavanjem novih čvorova u sustav
-- Bolje rukovanje velikim količinama podataka i prometom
+- Grafovi su izvrsni za modeliranje mreža svih vrsta
+
+![bg right:40% 90%](../assets/graph.png)
 
 ---
 
-## 5. Integritet podataka i transakcije
+## Modeliranje geografskih lokacija
 
-**Relacijske baze podataka:**
-- Ugrađena podrška za integritet podataka kroz ACID svojstva
-- Omogućuju transakcije
-- Osiguravaju da su operacije atomarne i konzistentne
+**Vrhovi (čvorovi)**
+- Geografske lokacije (gradovi, mjesta, raskrižja)
+- Svojstva: naziv, koordinate, populacija, površina...
 
-**Dokument baze podataka:**
-- Slabija konzistencija podataka
-- Ne omogućuju striktno ACID transakcije, umjesto toga BASE
-- Mnoge nude "eventual consistency" (konzistenciju u konačnici)
-- Veći naglasak na dostupnost (availability) i toleranciju particije (partition tolerance)
-- Prisjetite se BASE i CAP teorema
+**Bridovi (veze)**
+- Ceste koje povezuju lokacije
+- Svojstva: duljina, godina izgradnje, ograničenje brzine...
 
 ---
 
-## Kompromisi redundancije
+## Modeliranje geografskih lokacija - pristupi
 
-- **Niska redundancija:**
-  - Dobra propusnost ažuriranja (potrebno zaključati samo nekoliko stavki)
-  - Ažuriranje je brže i jednostavnije
-  
-- **Visoka redundancija:**
-  - Bolje vrijeme izvršavanja upita (potrebno je pristupiti manjem broju blokova)
-  - Upiti su brži i jednostavniji
+Ceste se mogu modelirati na dva načina:
 
-**Problemi:**
-- Redundantnost može voditi do nekonzistentnosti podataka
-- Otključano čitanje podataka (ACID) može dati dojam nekonzistentnosti pohranjenih podataka
+1. Kao bridovi između vrhova (gradova)
+   - Jednostavnije, fokus na udaljenosti
+   - Manje detalja o samoj cesti
 
----
+2. Kao posebni vrhovi povezani s drugim vrhovima
+   - Složenije, omogućuje više detalja
+   - Korisno kad trebamo podatke o samoj cesti (broj traka, lokacije prometnih nesreća...)
 
-## Usporedba terminologije
-
-**SQL BP:**
-- Baza podataka → Tablice → Retci
-
-**Dokument BP:**
-- Baza podataka → Collections (Zbirke) → Documents (Dokumenti)
-
-![Usporedba SQL i dokument baza](../assets/kupci.png)
+**Koji je "pravi" način?** Ovisi o potrebama aplikacije!
 
 ---
 
-## Dokument baze podataka - osnove
+## Modeliranje zaraznih bolesti
 
-- Dokument je osnovna podatkovna jedinica
-- Dokumenti su uređeni skupovi ključ-vrijednost parova
-- Usporedivo s retkom u tablici, ali fleksibilnije
+- Vrhovi predstavljaju ljude
+- Bridovi predstavljaju interakcije između ljudi
 
-**Ključna razlika:**
-Svaki dokument ne mora imati istu shemu!
+**Svojstva vrhova (ljudi):**
+- Demografski podaci (dob, težina, lokacija...)
+- Zdravstveni status:
+  - Nije nikad bio inficiran
+  - Nije inficiran sada ali je bio u prošlosti
+  - Trenutno inficiran
+  - Imun
 
----
-
-## Što je Dokument? (u kontekstu dokument BP)
-
-**JavaScript Object Notation (JSON) struktura:**
-- Podaci organizirani u parovima ključ-vrijednost
-- Dokument počinje `{` i završava s `}`
-- Nazivi su stringovi poput `"customer_id"`
-- Vrijednosti mogu biti:
-  - Brojevi
-  - Stringovi
-  - Boolean (true/false)
-  - Nizovi (`[ ]`)
-  - Objekti (`{ }`)
-  - NULL vrijednosti
+**Svojstva bridova:**
+- Tip kontakta
+- Trajanje kontakta
+- Vjerojatnost prijenosa
 
 ---
 
-## JSON primjer - zapis o kupcu
+## Modeliranje konkretnih i apstraktnih entiteta
 
-```json
-{
-  "customer_id": "C123456",
-  "name": "Ana Horvat",
-  "contact_info": {
-    "email": "ana.horvat@example.com",
-    "phone": "385-1-234-5678",
-    "address": {
-      "street": "Ilica 123",
-      "city": "Zagreb",
-      "postal_code": "10000",
-      "country": "Croatia"
-    }
-  },
-  "orders": [
-    {
-      "order_id": "O987654",
-      "date": "2023-11-15",
-      "items": [
-        {"product_id": "P111", "name": "Laptop", "quantity": 1},
-        {"product_id": "P222", "name": "Mouse", "quantity": 2}
-      ]
-    }
-  ],
-  "account_created": "2020-05-10",
-  "loyalty_points": 250
-}
+Grafovi su dobri za modeliranje apstraktnih odnosa (kao dio-od)
+
+**Primjeri:**
+- Oregon je dio USA, a provincija Quebec je dio Kanade
+- Grad Portland je lociran u Oregonu, a grad Montreal u Quebecu
+
+Ovakvi hijerarhijski odnosi predstavljaju poseban graf koji se naziva **stablo (tree)**
+
+**Stablo ima:**
+- Korijen (root)
+- Svojstvo: svi vrhovi su spojeni na samo jedan vrh (odnos parent-child)
+
+---
+
+## Stabla
+
+- Stabla su korisna za modeliranje hijerarhijskih odnosa
+- Primjer: dijelovi automobila
+
+```
+Automobil
+├── Motor
+│   ├── Blok motora
+│   ├── Klipovi
+│   └── Svjećice
+├── Karoserija
+│   ├── Vrata
+│   └── Stakla
+└── Podvozje
+    ├── Osovine
+    └── Amortizeri
 ```
 
 ---
 
-## JSON i XML
+## Modeliranje društvenih mreža
 
-Dokument baze podataka podržavaju različite formate:
+- "Like" na društvenim mrežama može biti modeliran kao veza između osobe i objave
+- Više ljudi može označiti s Like istu objavu
+- Ljudi mogu imati više objava s različitim brojem Like oznaka
 
-**JSON:**
-- Lakši za čitanje i pisanje
-- Manje overhead-a
-- Prirodna podržanost u JavaScript okruženjima
-- Danas dominantan format
-
-**XML:**
-- Više metapodataka
-- Strožija sintaksa
-- Šira podrška za validaciju sheme
-- Koristi se u nekim starijim sustavima
+**Posebno svojstvo:**
+U ovom primjeru postoji posebno svojstvo - bridovi idu samo od korisnika do objava. Ovakav graf se naziva **bipartitni graf** (bipartite graph).
 
 ---
 
-## Dokumenti i parovi Ključ-Vrijednost
+## Prednosti graf baza podataka
 
-**Prednost dokumenata u odnosu na K-V baze podataka:**
-- Povezanim atributima upravlja se unutar jednog objekta
-- Dokumenti mogu pohraniti više atributa u jednom objektu
-- Lakša implementacija čestih zahtjeva (npr. filtriranje podataka)
+- Graf BP pokazuju **eksplicitne veze** između entiteta
+  - Vrhovi predstavljaju entitete i vezani su bridovima
+  
+- U relacijskim bazama podataka:
+  - Veze nisu prikazane poveznicama
+  - Entiteti dijele zajedničke atribute (ključeve)
+  - Potrebno je koristiti JOIN operacije
+
+- U graf BP se umjesto spajanja (JOIN) **prate bridovi** od vrha do vrha
+  - Puno jednostavnija i brža operacija
+
+---
+
+## Pojednostavljeno modeliranje
+
+- Kod relacijskih baza podataka modeliranje počinje definiranjem entiteta, atributa i veza
+- Primjer društvene mreže u relacijskoj bazi (potrebne su pomoćne tablice za M:N veze):
+
+![Modeliranje veze više-na-više u RBP](../assets/rbp.png)
+
+---
+
+## Višestruke veze između entiteta
+
+- Primjer modeliranja transporta između entiteta u graf bazi podataka:
+
+![Modeliranje veze više-na-više u graf BP](../assets/graph.png)
+
+- Graf baze podataka prirodno podržavaju višestruke veze različitih tipova
+
+---
+
+## Terminologija graf BP - Vrh (vertex)
+
+- Vrh predstavlja entitet označen jedinstvenim identifikatorom
+  - Slično primarnom ključu ili rowkey-u u stupčastim BP
+  
+- Može predstavljati bilo koji entitet povezan s drugim entitetom:
+  - Ljudi na društvenoj mreži
+  - Gradovi povezani cestama
+  - Poslužitelji u klasteru
+  - Bilo koji drugi objekt iz stvarnog svijeta
+
+---
+
+## Terminologija graf BP - Brid (edge)
+
+- Definira vezu između povezanih vrhova ili objekata
+
+- Primjer:
+  - U obiteljskom stablu vrhovi predstavljaju ljude a bridovi veze između njih (npr. "kćer od", "otac od")
+
+- Također imaju svojstva koja se najčešće nazivaju "weight"
+  - Primjer: u cestovnoj mreži weight bi mogla biti udaljenost između gradova
+
+- Ne moraju svi grafovi imati svojstva za bridove
+
+---
+
+## Vrste bridova
+
+**Usmjereni (directed)**
+- Imaju smjer (npr. "roditelj od")
+- Veza ima značenje samo u jednom smjeru
+
+![bg right:40% 90%](../assets/graph.png)
+
+**Neusmjereni (undirected)**
+- Nemaju smjer 
+- Npr. u cestovnoj mreži smjer ne mora biti potreban ako se traži samo povezanost između gradova
+- Veza ima isto značenje u oba smjera
+
+---
+
+## Putanja (path)
+
+- Niz vrhova s bridovima koji povezuju te vrhove
+
+- **Usmjerena putanja:**
+  - Ako je u pitanju usmjereni graf
+  - Mora se pratiti smjer bridova
+
+- **Neusmjerena putanja:**
+  - Ako je u pitanju neusmjereni graf
+  - Može se kretati u bilo kojem smjeru
+
+- Važni jer sadržavaju informacije o povezanosti vrhova u grafu
+
+- Čest problem: pronaći najkraći (optimalan) put između dva vrha
+
+---
+
+## Petlja (loop)
+
+- Brid koji povezuje vrh na samog sebe
+
+- **Primjer:**
+  - U biologiji, proteini mogu imati interakciju s drugim proteinima iste vrste
+  - Osoba na društvenoj mreži koja šalje poruke sama sebi
+  
+- U nekim grafovima petlje nemaju smisla
+  - Na primjer u obiteljskom stablu
+
+---
+
+## Operacije na grafovima
+
+- Osnovne operacije kao u ostalim BP:
+  - Unos
+  - Čitanje
+  - Ažuriranje
+  - Brisanje 
+
+- Dodatne operacije specifične za grafove:
+  - Unija grafova
+  - Presjek grafova
+  - Obilazak grafa
+
+---
+
+## Unija grafova
+
+- Kombinirani skup vrhova i bridova dvaju ili više grafova
 
 **Primjer:**
-U dokument BP jednim upitom možemo filtrirati korisnike s kupnjom u zadnjih 6 mjeseci i dohvatiti ID, imena i adrese. U K-V bazi to bi zahtijevalo više koraka i upita.
+- Graf A
+  - Vrhovi: 1, 2, 3 i 4
+  - Bridovi: {1,2}, {1, 3}, i {1, 4}
+  
+- Graf B
+  - Vrhovi: 1, 4, 5 i 6
+  - Bridovi: {1, 4}, {4, 5}, {4, 6} i {5, 6}
 
 ---
 
-## Zbirke (Collections)
+## Unija grafova - rezultat
 
-- Mogu se smatrati listom dokumenata
-- Unutar iste kolekcije dokumenti ne moraju imati identičnu strukturu
-- Preporuka: dokumenti unutar zbirke trebaju biti sličnog tipa
+Unija grafova A i B je skup vrhova i bridova oba grafa:
+- Vrhovi: 1, 2, 3, 4, 5 i 6
+- Bridovi: {1, 2}, {1, 3}, {1, 4}, {4, 5}, {4, 6} i {5, 6}
 
-**Potencijalni problem:**
-Filtriranje podataka prema različitim kriterijima. Možda je bolje napraviti više zbirki ovisno o očekivanoj količini podataka i načinu filtriranja.
-
----
-
-## Ima li smisla stavljati različite tipove dokumenata u istu zbirku?
-
-**Primjer:** Web trgovina s različitim tipovima proizvoda
-
-**Informacije o svim proizvodima:**
-- Naziv
-- Kratki opis
-- Skladište
-- Dimenzija
-- Težina
-- Prosječna ocjena korisnika
-- Prodajna cijena
-- Nabavna cijena
+![Unija grafova A i B](../assets/graph.png)
 
 ---
 
-## Informacije specifične za tipove proizvoda
+## Presjek grafova
 
-**KNJIGE:**
-- Autor
-- Izdavač
-- Godina izdanja
-- Broj stranica
+- Skup vrhova i bridova koji su zajednički oba grafa
 
-**CD:**
-- Izvođač
-- Producent
-- Broj pjesama
-- Ukupno vrijeme trajanja
-
-**MALI KUĆANSKI APARATI:**
-- Boja
-- Snaga
-- Stil
+**Za prethodni primjer:**
+- Vrhovi: 1, 4
+- Bridovi: {1, 4}
 
 ---
 
-## Analiza upita za organizaciju podataka
+## Obilazak grafa
 
-**Tipični upiti:**
-- Koji je prosječan broj kupljenih proizvoda od jednog kupca?
-- Koji je raspon broja proizvoda kupljenih od strane kupaca?
-- Kojih je 20 najpopularnijih proizvoda prema statistici kupaca?
-- Kolika je prosječna vrijednost prodaje prema statistici kupaca?
-- Koliko je tipova proizvoda prodano u zadnjih 30 dana?
+- Proces posjećivanja svih vrhova u grafu na određeni način
 
-**Zaključak:**
-- Gotovo svi upiti odnose se na zajedničke podatke
-- Samo jedan upit odnosi se na tipove proizvoda
-- U ovom slučaju ima smisla staviti sve podatke u istu kolekciju
-- Klijent će vjerojatno u budućnosti dodati još tipova proizvoda
+**Najčešće metode obilaska:**
+1. Pretraživanje u dubinu (DFS - Depth-First Search)
+   - Započinje iz vrha i ide što dublje prije vraćanja
+   
+2. Pretraživanje u širinu (BFS - Breadth-First Search)
+   - Posjećuje sve susjedne vrhove prije kretanja dalje
 
 ---
 
-## Definicija sheme
+## Svojstva grafova i bridova
 
-**Schemaless (bez sheme):**
-- Fleksibilnost u strukturi dokumenata
-- Nije potrebno unaprijed definirati strukturu
-- Nema strogih ograničenja kao u relacijskim bazama
+Nekoliko svojstava korisno za analizu i usporedbu grafova:
 
-**Polymorphic schema (polimorfna shema):**
-- Različite vrste dokumenata unutar iste zbirke
-- Dokumenti s istim poljem "tip" imaju sličnu strukturu
-- Korisno za modeliranje srodnih, ali različitih entiteta
+- Izomorfizmi (Isomorphisms)
+- Redoslijed i veličina (Order and Size)
+- Stupanj (Degree)
+- Bliskost (Closeness)
+- Pripadnost (Betweenness)
 
 ---
 
-## Osnovne operacije
+## Izomorfizam
 
-- Ne postoji standardni jezik za manipulaciju podacima na dokument BP
-- Svaka implementacija ima vlastiti API i sintaksu
+- Dva grafa smatraju se izomorfnim ako:
+  - Za svaki vrh u prvom grafu postoji odgovarajući vrh u drugom grafu
+  - Za svaki brid između para vrhova u prvom grafu postoji odgovarajući brid u drugom grafu
 
-**Osnovne operacije:**
-- Unos (Insert)
-- Brisanje (Delete)
-- Ažuriranje (Update)
-- Dohvat (Retrieve)
-- Bulk Insert (masovni unos)
+- **Primjena:**
+  - Društvene mreže
+  - Epidemiologija
+  - Detekcija uzoraka u skupu grafova
 
 ---
 
-## Osnovne operacije - primjer
+## Redoslijed i veličina (Order and Size)
 
-**Dvije kolekcije: Knjige (lijevo), Kupci (desno)**
+- Mjere veličine grafa:
+  - **Redoslijed grafa** = broj vrhova
+  - **Veličina grafa** = broj bridova
 
-```javascript
-// Unos novog dokumenta
-db.books.insert({
-  title: "NoSQL za početnike",
-  author: "Ivan Horvat",
-  year: 2023,
-  price: 299.99
-})
+- Važni za razumijevanje performansi:
+  - Utječu na vrijeme i prostor potreban za izvođenje operacija
+  - Za izvođenje operacija na malom grafu trebat će manje vremena nego za iste operacije na velikom grafu
 
-// Dohvat s filtrom
-db.customers.find({
-  "address.city": "Zagreb"
-})
+---
 
-// Ažuriranje
-db.books.update(
-  { title: "NoSQL za početnike" },
-  { $set: { price: 249.99 } }
-)
+## Stupanj (Degree)
 
-// Brisanje
-db.customers.remove({ inactive: true })
+- Broj bridova povezanih na vrh
+- Jedan od načina mjerenja važnosti vrha u grafu
+
+- **Značaj:**
+  - Vrhovi s višim stupnjevima direktnije su povezani s drugim vrhovima
+  - Važan pokazatelj kada se rješavaju problemi širenja informacija ili svojstava kroz mrežu
+  - U društvenim mrežama, osobe s visokim stupnjem imaju više veza
+
+---
+
+## Bliskost (Closeness)
+
+- Svojstvo vrha koje pokazuje koliko je vrh "daleko" od svih ostalih u grafu
+- Važna mjera za razumijevanje:
+  - Širenja informacija na društvenoj mreži
+  - Širenja zarazne bolesti u zajednici
+  - Kretanje materijala u distribucijskoj mreži
+
+- **Primjena:**
+  - Marketinški stručnjaci mogu ciljati ljude s visokim vrijednostima bliskosti za širenje vijesti o novom proizvodu
+  - Informacije će se brže širiti mrežom ako započnu s nekim s visokom vrijednošću bliskosti
+
+---
+
+## Pripadnost (Betweenness)
+
+- Mjera koliko je neki vrh "usko grlo" u mreži
+- Pokazuje koliko je vrh važan za povezivanje različitih dijelova grafa
+
+**Primjer:**
+- Grad na rijeci koji ima mnogo cesta, ali samo jedan most
+- Vrhovi koji tvore most imaju visoku vrijednost pripadnosti jer tvore usko grlo
+- Ako bi se uklonili, graf bi ostao nepovezan
+
+---
+
+## Vrste grafova
+
+- Usmjereni i neusmjereni grafovi (Directed and Undirected Graphs)
+- Mrežni protok (Flow Network)
+- Bipartitni grafovi (Bipartite Graph)
+- Multigrafovi (Multigraph)
+- Težinski graf (Weighted graph)
+
+---
+
+## Usmjereni i neusmjereni grafovi
+
+**Usmjereni graf:**
+- Bridovi imaju smjer (A → B)
+- Veza od A do B ne implicira vezu od B do A
+
+**Neusmjereni graf:**
+- Bridovi nemaju smjer (A — B)
+- Veza između A i B znači isto u oba smjera
+
+---
+
+## Mrežni protok (Flow Network)
+
+- Nazivaju se i transportne mreže
+- Usmjereni graf u kojem:
+  - Svaki brid ima kapacitet
+  - Svaki vrh ima skup ulaznih i izlaznih bridova
+  
+- Važno pravilo: zbroj kapaciteta ulaznih bridova ne smije biti veći od zbroja kapaciteta izlaznih bridova
+  - Dvije iznimke: vrhovi "izvor" i "ponor"
+
+- **Primjena:** modeliranje prometnih sustava, vodovodnih mreža, električnih mreža...
+
+---
+
+## Bipartitni grafovi (bigraf)
+
+- Graf s dva različita skupa vrhova gdje je svaki vrh u jednom skupu povezan samo s vrhovima drugog skupa
+- Nikada nema veza između vrhova istog skupa
+
+**Koristi se za modeliranje:**
+- Odnosa između objava na društvenim mrežama i ljudi
+- Odnosa nastavnici-učenici
+- Odnosa poslovi-kandidati
+- Odnosa kupci-proizvodi
+
+---
+
+## Multigrafovi
+
+- Graf s višestrukim bridovima između vrhova
+- Omogućuje modeliranje različitih tipova veza između istih entiteta
+
+**Primjer:**
+- Tvrtka za dostavu koja koristi multigraf za određivanje najjeftinijeg načina dostave između gradova
+- Višestruke veze predstavljaju različite opcije transporta (vlak, autobus, avion...)
+- Svaki brid ima svojstva kao što su vrijeme, cijena, pouzdanost...
+
+---
+
+## Težinski graf (Weighted graph)
+
+- Svaki brid ima dodijeljen broj (težinu) koji može predstavljati:
+  - Cijenu
+  - Kapacitet
+  - Udaljenost
+  - Vrijeme putovanja
+  - Druge kvantitativne mjere
+
+- Često se koristi kod optimizacije problema kao što je traženje najkraćeg puta
+- **Dijkstrin algoritam:** jedan od najpoznatijih algoritama za traženje najkraćeg puta
+
+---
+
+## Dijkstrin algoritam
+
+- Edsger Dijkstra: nizozemski znanstvenik poznat po doprinosu dizajnu softvera
+
+> "Računarstvo nije ništa više o računalima nego što je astronomija o teleskopima."
+
+- Idealan za:
+  - Usmjeravanje paketa na Internetu
+  - Traženje najučinkovitije rute za dostavu
+  
+- Performanse: vrijeme izvršavanja proporcionalno je kvadratu broja vrhova
+  - Vrijeme potrebno za završetak algoritma eksponencijalno raste s brojem vrhova
+
+---
+
+## Dizajn graf baza podataka
+
+- Pristup u dizajnu svake NoSQL BP temelji se na upitima i analizi podataka koja se očekuje od sustava
+- Graf BP su primjerene za domenu problema koja se može opisati entitetima i odnosima među njima
+
+**Od graf BP se očekuje rješavanje upita i analiza koji uključuju:**
+- Identificiranje odnosa između entiteta
+- Identificiranje zajedničkih svojstava bridova iz vrha
+- Izračunavanje agregatnih svojstava bridova iz vrha
+- Izračunavanje agregatnih vrijednosti svojstava vrhova
+
+---
+
+## Primjeri upita za graf BP
+
+- Koliko skokova (bridova) je potrebno da se stigne od vrha A do vrha B?
+- Koliko bridova između vrhova A i B ima trošak manje od 100?
+- Koliko bridova je vezano na vrh A?
+- Koja je centralna mjera vrha B?
+- Je li vrh C usko grlo? Ako je, i ako se ukloni, koji dio grafa ostaje nepovezan?
+
+---
+
+## Dizajn graf BP za društvenu mrežu
+
+**Primjer:** Društvena mreža za NoSQL programere
+
+**Funkcionalnosti:**
+- Prijava i odlazak sa stranice
+- Praćenje objava drugih programera
+- Postavljanje pitanja drugim ekspertima
+- Predlaganje novih veza temeljem dijeljenih interesa
+- Rangiranje članova temeljem broja veza, objava i odgovora
+
+---
+
+## Entiteti i svojstva
+
+**Model definiran s dva osnovna entiteta:**
+- Programeri
+- Objave
+
+**Svojstva programera:**
+- Ime
+- Lokacija
+- Korištene NoSQL BP
+- Godine iskustva
+- Područje interesa (modeliranje podataka, optimizacija, sigurnost...)
+
+**Svojstva objava:**
+- Datum izrade
+- Ključne riječi
+- Tip objave (pitanje, novosti, savjeti...)
+- Naslov
+- Tijelo objave
+
+---
+
+## Odnosi između entiteta
+
+1. **Programer – programer**
+   - Veza "Follows" (prati)
+   
+2. **Programer – objava**
+   - Veza "Created" (kreirana)
+   
+3. **Objava – programer**
+   - Veza "CreatedBy" (kreirana od)
+   
+4. **Objava – objava**
+   - Veza "ResponseTo" (odgovor na)
+
+---
+
+## Dizajn usmjeren upitima
+
+- Ne postoji jedan ispravan način modeliranja graf BP za sve probleme
+- Modeliranje ovisi o tipičnim upitima i načinu korištenja podataka
+
+**Primjeri optimizacije:**
+- Implementacija direktne veze između objave i programera (CreatedBy)
+- Praćenje bridova i vrhova je jednostavna i brza operacija
+- Veze objava-objava su korisne za modeliranje odgovora na pitanja
+
+---
+
+## Dizajn usmjeren upitima - primjer
+
+**Primjer niti konverzacije:**
+
+```
+[Robert] -> Pitanje: "Postoji li brži put od Dijkstrinog algoritma za traženje najkraćeg puta?"
+  |
+  v
+[Ana] -> Odgovor: "Za specifične slučajeve, da. A* je često brži za probleme s heuristikom..."
+  |
+  v
+[Marko] -> Odgovor: "Bellman-Ford je bolji kad imaš negativne težine..."
+  |
+  v
+[Robert] -> Zahvala: "Hvala svima na odgovorima!"
 ```
 
 ---
 
-## Terminologija dokument BP
+## Osnovni koraci dizajna graf BP
 
-**Osnovni termini:**
-- **Dokument** - Skup uređenih ključ-vrijednost parova
-- **Zbirka (kolekcija)** - Skupina dokumenata uobičajeno povezana za isti entitet
-- **Ugrađeni dokument** - Dokument unutar dokumenta, omogućuje pohranu povezanih podataka u jednom dokumentu
-- **Schemaless** - "Dvosjekli mač" - pruža fleksibilnost ali nema provjere podataka prije operacija
-- **Polimorfična shema** - Više različitih "vrsta" dokumenata u istoj zbirci
-
----
-
-## "Partitioning is a word that gets a lot of use in the NoSQL world—perhaps too much"
-
-- CAP teorem (ponovimo):
-  - Consistency (konzistentnost)
-  - Availability (dostupnost)
-  - Partition tolerance (tolerancija na particije)
-
-- U kontekstu dokument BP se particioniranje odnosi na dijeljenje baze i raspodjelu različitih dijelova na različite poslužitelje
-
-- **Horizontalno particioniranje** (tipično za NoSQL)
-  - Dijeljenje po redcima (dokumentima)
-  - Za razliku od vertikalnog (po stupcima)
+1. Identificirati upite koje želite izvoditi
+2. Identificirati entitete u grafu
+3. Identificirati odnose između entiteta
+4. Preslikati upite specifične za domenu u apstraktnije upite grafa
+5. Implementirati upite koristeći algoritme grafa za izračunavanje dodatnih svojstava čvorova
 
 ---
 
-## Horizontalno particioniranje ili Sharding
+## Upitni jezici za graf
 
-- Proces dijeljenja BP prema dokumentima
-- Dijelovi (*shards*) su pohranjeni na različitim poslužiteljima
-- Jedan *shard* može biti pohranjen na više poslužitelja kad je BP konfigurirana za repliciranje podataka
+Postoji više različitih jezika za upite u graf bazama podataka:
 
-![bg right:40% 80%](../assets/v0.png)
-
----
-
-## Razdvajanje podataka pomoću Shard Keys
-
-- **Shard Key** je jedan ili više ključeva ili polja koji postoje u svim dokumentima u zbirci
-- Određuje vrijednosti koje se koriste pri grupiranju dokumenata u različite shard-ove
-- Algoritam particioniranja koristi shard key kao ulaz i određuje odgovarajući shard
-
-**Tipovi podjele:**
-- Range (raspon)
-- Hash (hash vrijednost)
-- Lista (eksplicitna lista vrijednosti)
-
----
-
-## Normalizacija u dokument bazama
-
-**Relacijske BP:**
-- Normalizacija uklanja redundanciju
-- Smanjuje anomalije ažuriranja
-- Koristi JOIN operacije za povezivanje podataka
-
-**Dokument BP:**
-- Termin se ponekad koristi za opis dizajna dokumenata
-- "Normalizirani dokumenti" impliciraju postojanje referenci prema drugim dokumentima za dodatne informacije
-- Smanjuju redundanciju, ali povećavaju broj upita
-
----
-
-## Denormalizacija
-
-**Dizajniranje baza podataka podrazumijeva kompromise:**
-
-- **Denormalizacija** u dokument BP često znači:
-  - Ugnježđivanje povezanih podataka u jedan dokument
-  - Povećanje redundancije podataka
-  - Smanjenje potrebe za spajanjem više dokumenata
+- **Cypher** - deklarativni jezik sličan SQL-u za izradu upita
+  - Koristi se za Neo4j graf BP
   
-- **Prednosti:**
-  - Brži upiti (sve na jednom mjestu)
-  - Bolje performanse za čitanje
-  
-- **Nedostaci:**
-  - Teže ažuriranje (potrebno ažurirati na više mjesta)
-  - Veći rizik nekonzistentnosti
+- **Gremlin** - jezik za obilazak grafa koji radi s više graf BP
+  - Dio Apache TinkerPop projekta
 
 ---
 
-## Primjer slučaja korištenja
+## Cypher - primjeri
 
-**Problem: TransGlobal Transport and Shipping (TGTS)**
+SQL je deklarativni jezik za rad s tablicama, Cypher je deklarativni jezik za rad s grafovima.
 
-- Posao je narastao i tvrtka transportira složenije i različitije isporuke
-- Za sve spremnike potreban je osnovni skup polja:
-  - Ime kupca, kontakt informacije
-  - Izvorište, odredište
-  - Sažetak sadržaja
-  - Broj stavki u kontejneru
-  - Indikator opasnog materijala
-  - Datum isteka kvarljivih predmeta
-  - Podaci za kontakt za isporuku
-
----
-
-## Posebne vrste spremnika
-
-**Opasni materijali:**
-- Mora se priložiti sigurnosno-tehnički list (MSDS)
-- Informacije za hitne službe koje će možda morati rukovati materijalima
-
-**Kvarljiva hrana:**
-- Podaci o inspekciji hrane
-- Ime inspektora
-- Agencija odgovorna za inspekciju
-- Kontakt podaci agencije
+**Cypher podržava:**
+- WHERE
+- ORDER BY
+- LIMIT
+- UNION
+- COUNT
+- DISTINCT
+- SUM
+- AVG
 
 ---
 
-## Analiza uzoraka upita
+## Cypher - primjeri sintakse
 
-- 70%–80% upita dohvaća jedan zapis
-  - Obično prema identifikatoru, imenu kupca, datumu otpreme i izvornom objektu
-  
-- Preostalih 20%–30% su sažeta izvješća
-  - Pokazuju podskup uobičajenih informacija
-  - Povremeno izvješća prema vrsti pošiljke (rijetko)
+**Izrada vrhova:**
+```cypher
+CREATE (p:Programmer {name: 'Ana Horvat', location: 'Zagreb', 
+                      experience: 5, interests: ['Modeliranje', 'Graf BP']})
+```
 
-**Budući razvoj:**
-- Značajno povećanje poslova u sljedećih 12-18 mjeseci
-- Više vrsta tereta s posebnim informacijama
-- Potreba za horizontalnim skaliranjem i fleksibilnom shemom
-
----
-
-## Struktura: zbirka "Manifest"
-
-**Osnovna polja:**
-- Ime kupca
-- Ime kontakta kupca
-- Adresa kupca
-- Broj telefona kupca
-- Faks kupca
-- E-pošta kupca
-- Objekt za podrijetlo
-- Odredišni objekt
-- Datum otpreme
-- Očekivani datum isporuke
-- Broj stavki u spremniku
+**Izrada bridova:**
+```cypher
+MATCH (p1:Programmer {name: 'Ana Horvat'}), 
+      (p2:Programmer {name: 'Ivan Kovač'})
+CREATE (p1)-[:FOLLOWS]->(p2)
+```
 
 ---
 
-## Ugraditi (embed) ili ne?
+## Cypher - primjeri upita
 
-**Pitanje:**
-Treba li ugnijezditi podatke o kvarljivoj hrani i opasnim materijalima u glavni dokument ili ih izdvojiti?
+**Dohvat svih programera:**
+```cypher
+MATCH (p:Programmer) 
+RETURN p
+```
 
-**Analiza:**
-- Prema uzorcima izvješća, podaci o kvarljivoj hrani rutinski se prijavljuju zajedno s ostalima
-  - Odluka: ugraditi ove podatke u dokument
-
-- Podaci o opasnim materijalima (MSDS) rijetko se koriste
-  - Odluka: pohraniti u posebnu zbirku MSDS
-
----
-
-## Odabir indeksa
-
-**Uzorak korištenja:**
-- 60%–65% operacija čitanja
-- 35%–40% operacija pisanja
-
-**Indeksi za čitanje:**
-- Identifikator - za brz dohvat pojedinačnih manifesta
-- Kombinirani indeks: ime klijenta + datum otpreme + mjesto podrijetla
-  - Umjesto više pojedinačnih indeksa
-  - Pokriva najčešće korištene upite
+**Dohvat svih veza za određenog programera:**
+```cypher
+MATCH (p:Programmer {name: 'Robert Smith'})-[r]-() 
+RETURN r
+```
 
 ---
 
-## Odvojene zbirke prema vrsti?
+## Gremlin - upiti za obilazak grafa
 
-**Dilema:**
-Treba li kreirati zasebne zbirke za svaku vrstu manifesta?
+- Umjesto upita određivanjem kriterija za odabir vrhova (kao u Cypheru)
+- Specificiraju se vrhovi i pravila za njihov obilazak
 
-**Analiza:**
-- Trenutno mali broj vrsta, ali u budućnosti mnogo više
-- Tvrtka planira dodati usluge prijevoza smrznute robe
+**Osnovni obilazak grafa:**
+```gremlin
+g.V().has('name', 'Robert').out('FOLLOWS').values('name')
+```
 
-**Odluka:**
-- Iznimka od pravila odvajanja po vrsti
-- Nije poželjno upravljati velikim brojem kolekcija
-- Korištenje jedne zbirke s polimorfnom shemom je bolje rješenje
-- Tipove pratiti unutar dokumenata
+Ovaj upit dohvaća sve programere koje Robert prati.
 
 ---
 
-## Projekti
+## Popularne graf baze podataka
 
-**ROKOVI:**
-- Temu odabrati do 1.5.2024.
-- Obrane tema projekata od 14.5.2024 u terminima predavanja (DSE, utorkom u 8:15)
-- Predaja finalne verzije projekta (u prihvatljivom obliku) - do 1.6.2024. - **Uvjet za potpis!**
-- Obrane projekata od 28.5.
+- **Neo4j** - najpoznatija graf baza podataka, koristi Cypher
+- **ArangoDB** - višemodalna baza koja podržava grafove, dokumente i ključ-vrijednost
+- **Amazon Neptune** - upravljana graf baza u AWS-u
+- **JanusGraph** - distribuirana graf baza podataka
+- **OrientDB** - višemodalna baza s podrškom za grafove
+- **TigerGraph** - skalabilna graf analitička platforma
+
+---
+
+## Zaključak
+
+- Graf baze podataka odlične su za probleme gdje su odnosi između entiteta važni
+- Idealne za složene upite koji bi zahtijevali mnoštvo JOIN operacija u relacijskim bazama
+- Prirodno podržavaju kompleksne odnose i strukture podataka
+- Omogućuju naprednu analizu veza između entiteta
+- Podržavaju različite algoritme za analizu grafova
+
+---
+
+## Projekti - podsjetnik
+
+- **ROKOVI**: na stranicama kolegija
+- Predaja projekta u zadanim rokovima je uvjet za potpis!
 
 **Dataset primjeri:**
-- https://www.kaggle.com/datasets
 - Vremenske prognoze: https://github.com/zonination/weather-us/blob/master/boston.csv
 - New York taxi: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page

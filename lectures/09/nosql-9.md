@@ -1,12 +1,12 @@
 ---
 marp: true
 theme: gaia
-title: Raspodijeljene i nerelacijske baze podataka - Column-Family Databases
-description: Nikola Balić, Column-Family Databases
+title: Raspodijeljene i nerelacijske baze podataka - Redis
+description: Nikola Balić, Redis
 paginate: true
 ---
 
-# Column-Family Databases
+# Redis i Key-Value Stores
 
 ### Akademska godina 2024/2025
 Nikola Balić
@@ -14,429 +14,370 @@ nikola.balic@gmail.com
 github.com/nkkko
 
 ---
-## Uvod u Wide Column Stores
+## Što je Redis?
 
-### Big Data izazovi
+### REmote DIctionary Server
 
-- **Very Large Databases (VLDB):** 
-  - Milijarde redaka
-  - Desetci tisuća stupaca
-  
-- **Zašto su potrebne?**
-  - Google, Facebook, Amazon, Yahoo!
-  - Skala tradicionalno nezamisliva za relacijske BP
-  - Analitike, IoT, senzorski podaci, logovi
+- **In-memory baza podataka**
+- **Key-value store**
+- **Visoke performanse**
+- **Podržava različite tipove podataka**
+- **Često korišten kao cache**
 
 ---
-## Row vs. Column Oriented Storage
+## Redis vs MongoDB
 
-### Fundamentalna razlika
+### Različiti NoSQL pristupi
 
-**Row-oriented:**
-```
-[id:1, name:"Ana", email:"ana@email.com", dept:"HR"] 
-[id:2, name:"Ivan", email:"ivan@email.com", dept:"IT"]
-```
-
-**Column-oriented:**
-```
-id:    [1, 2]
-name:  ["Ana", "Ivan"]
-email: ["ana@email.com", "ivan@email.com"]
-dept:  ["HR", "IT"]
-```
+| Redis | MongoDB |
+|-------|---------|
+| In-memory | Disk-based |
+| Key-value | Document |
+| Jednostavnija struktura | Kompleksna struktura |
+| Cache/Queue | Trajna pohrana |
+| Brži | Veći kapacitet |
 
 ---
-## Row-Oriented Storage
+## Redis Tipovi Podataka
 
-### Karakteristike
+### Osnovni tipovi
 
-- **Pohranjuje redak po redak**
-- **Optimizirano za:**
-  - OLTP (Online Transaction Processing)
-  - Često pisanje
-  - Dohvat kompletnih zapisa
-  
-- **Prednosti:**
-  - Učinkovit unos/ažuriranje zapisa
-  - Jednostavno upravljanje transakcijama
-  - Efikasno kod dohvaćanja cijelog retka
+- **Strings:** Najjednostavniji tip
+- **Lists:** Linked lists
+- **Sets:** Neuređeni skupovi
+- **Sorted Sets:** Uređeni skupovi
+- **Hashes:** Kolekcije key-value parova
+- **Streams:** Append-only log strukture
 
 ---
-## Column-Oriented Storage
+## Redis Strings
 
-### Karakteristike
+### Osnovne operacije
 
-- **Pohranjuje stupac po stupac**
-- **Optimizirano za:**
-  - OLAP (Online Analytical Processing)
-  - Analitiku
-  - Agregacije (SUM, AVG, COUNT)
-  
-- **Prednosti:**
-  - Bolja kompresija podataka
-  - Učinkovitije čitanje podskupa stupaca
-  - Brže analitičke operacije
+```bash
+# Postavljanje vrijednosti
+SET user:1:name "Ana Horvat"
+SET user:1:age "25"
 
----
-## Demonstracija SQL upita 1
+# Dohvaćanje vrijednosti
+GET user:1:name
 
-### SELECT ime FROM emp WHERE ID_br=666
+# Inkrementiranje
+SET counter 1
+INCR counter
+GET counter  # vraća "2"
 
-**Row-oriented execution:**
-```
-1. Učitaj prvi blok (redci 1001-1003)
-2. Provjeri uvjet ID_br=666 za svaki redak
-3. Učitaj drugi blok (redci 1004-1006)
-4. Provjeri uvjet ID_br=666 za svaki redak
-5. Kada se pronađe redak, vrati vrijednost 'ime'
-```
-
-**Column-oriented execution:**
-```
-1. Učitaj stupac ID_br
-2. Pronađi pozicije gdje je ID_br=666
-3. Učitaj samo te pozicije iz stupca 'ime'
+# Postavljanje s istekom
+SETEX session:token 3600 "abc123"
 ```
 
 ---
-## Demonstracija SQL upita 2
+## Redis Lists
 
-### SELECT SUM(placa) FROM emp
+### Rad s listama
 
-**Row-oriented execution:**
-```
-1. Učitaj sve blokove
-2. Izvuci vrijednost plaće iz svakog retka
-3. Izračunaj sumu
-```
+```bash
+# Dodavanje na početak/kraj liste
+LPUSH messages "Poruka 1"
+RPUSH messages "Poruka 2"
 
-**Column-oriented execution:**
-```
-1. Učitaj samo stupac 'placa'
-2. Izračunaj sumu
-```
+# Dohvaćanje elemenata
+LRANGE messages 0 -1
 
-Koje je učinkovitije? 🤔
+# Implementacija queue
+LPUSH tasks "task:1"
+RPOP tasks  # uzima zadnji element
 
----
-## Terminologija Column-Family baza
-
-### Različiti nazivi, slični koncepti
-
-- **Column Family Databases**
-- **Wide Column Stores**
-- **Column-oriented Databases**
-- **Bigtable Clones**
-
-**Konfuzija:** "Column-oriented" može se odnositi na:
-1. Način fizičkog pohranjivanja podataka
-2. Logički model višedimenzionalnih ključ-vrijednost parova
-
----
-## Osnovna struktura
-
-### Glavni koncepti
-
-```
-┌─────────────────────────────────────────────┐
-│ Row Key: "user1"                            │
-├─────────────────┬───────────────────────────┤
-│ Column Family:  │ Column Family:            │
-│ profile         │ posts                     │
-├─────────────────┼───────────────────────────┤
-│ name: "Ana"     │ 2023-01-01: "Prvi post"   │
-│ email: "a@e.com"│ 2023-01-15: "Drugi post"  │
-│ age: "29"       │ 2023-02-01: "Treći post"  │
-└─────────────────┴───────────────────────────┘
-```
-
-- **Sparse Matrix:** Samo popunjena polja su pohranjena
-- **Multidimensional Map:** Organizacija kao višestruka mapa
-
----
-## Ključne komponente
-
-### Anatomija Column Family baze podataka
-
-- **Keyspace:** Kontejner za column families (analog sheme)
-- **Row Key:** Jedinstveni identifikator retka
-- **Column Family:** Grupa povezanih stupaca
-- **Column:** Najmanja jedinica pohrane (ime:vrijednost)
-- **Timestamp:** Verzioniranje vrijednosti
-
----
-## Row Key
-
-### Dizajn i karakteristike
-
-- **Jedinstveni identifikator** za redak
-- **Analogno primarnom ključu** u relacijskoj bazi
-- **Omogućuje:** 
-  - Brzo pronalaženje podataka
-  - Distribuciju podataka (sharding)
-  - Sortiranje podataka
-  
-- **Pohranjen leksikografski** (važno za fizičku organizaciju)
-
----
-## Column Families
-
-### Organizacijska jedinica
-
-```
-Column Family: profile
-┌───────────┬───────────┬───────────┐
-│ name:"Ana"│email:"a@e"│ age:"29"  │
-└───────────┴───────────┴───────────┘
-
-Column Family: posts
-┌────────────────┬─────────────────┐
-│2023-01:"Post 1"│2023-02:"Post 2" │
-└────────────────┴─────────────────┘
-```
-
-- **Grupiranje povezanih podataka**
-- **Osnovna jedinica administracije**
-- **Fizički pohranjeni zajedno** na disku
-- **Definirani pri stvaranju tablice,** ali mogu se dodati naknadno
-
----
-## Stupci i vremenske oznake
-
-### Atomska jedinica podataka
-
-**Struktura stupca:**
-- **Ime stupca:** Identifikator (string)
-- **Vrijednost:** Binarni podatak
-- **Vremenska oznaka (timestamp):** Verzioniranje podataka
-
-**Primjeri:**
-```
-"name:Ana:1577836800"
-"name:Ana Horvat:1609459200"  // novija verzija
+# Implementacija stack
+LPUSH stack "item:1"
+LPOP stack  # uzima prvi element
 ```
 
 ---
-## Atomarno čitanje i pisanje
+## Redis Sets
 
-### Transakcijska svojstva
+### Neuređeni skupovi
 
-- **Operacije na razini retka su atomarne**
-- **Garantirano je da će se svi stupci u retku:**
-  - Pročitati zajedno kao jedinica (ili nijedan)
-  - Zapisati zajedno kao jedinica (ili nijedan)
-  
-- **Nema parcijalnih rezultata**
-- **Izazov:** Transakcije preko više redaka
+```bash
+# Dodavanje članova
+SADD online:users "user:1"
+SADD online:users "user:2"
 
----
-## Bigtable: Početak column-family DB
+# Provjera članstva
+SISMEMBER online:users "user:1"
 
-### Google's Revolucija
+# Presjek skupova
+SINTER online:users premium:users
 
-- **Objavljen 2006. godine**
-- **Citiran rad:** "Bigtable: A Distributed Storage System for Structured Data"
-- **Utjecaj:** Inspirirao mnoge open-source implementacije
-- **Cilj:** Skaliranje do petabajta podataka
-- **Dizajn:** Optimiziran za nisko-latentno, visoko-propusno okolinu
-
----
-## Google's Motivacija
-
-### Zašto su razvili Bigtable?
-
-- **Polustrukturirani podaci:** 
-  - Web indeksi (URL, sadržaj, meta)
-  - Korisnički podaci (preference, pretraživanja)
-  - Geografski podaci (lokacije, satelitske slike)
-
-- **Zahtjevi:** 
-  - Milijarde URL-ova
-  - Milijuni korisnika 
-  - Terabajtne zbirke
-
----
-## Bigtable Model Podataka
-
-### Trodimenzionalna mapa
-
-```
-(row:string, column:string, timestamp:int64) → string
+# Unija skupova
+SUNION team:a team:b
 ```
 
-**Primjer Web tablice:**
-- **Row key:** "com.cnn.www" (obrnuti URL)
-- **Column family:** "contents:" (sadržaj stranice)
-- **Column family:** "anchor:" (linkovi koji pokazuju na ovu stranicu)
-- **Timestamp:** verzije u vremenu
-
 ---
-## Bigtable Arhitektura
+## Redis Sorted Sets
 
-### Distribuirani sustav
+### Uređeni skupovi s bodovima
 
-![width:800px](https://miro.medium.com/v2/resize:fit:1400/1*8ioFXR_TP_XDBz7VF8rbIw.png)
+```bash
+# Dodavanje s bodovima
+ZADD leaderboard 100 "Ana"
+ZADD leaderboard 95 "Marko"
+ZADD leaderboard 98 "Ivan"
 
-- **Tablet serveri:** Upravljaju podskupom podataka
-- **Master server:** Koordinira tablet servere
-- **Chubby:** Distributed lock service za koordinaciju
+# Dohvaćanje ranga
+ZRANK leaderboard "Ana"
 
----
-## Apache HBase i Cassandra
-
-### Open-source implementacije
-
-**HBase:**
-- Direktna implementacija Bigtable koncepta
-- Dio Hadoop ekosustava
-- Tight integration s HDFS
-- Master-slave arhitektura
-
-**Cassandra:**
-- Kombinira koncepte Bigtable i Amazon Dynamo
-- Decentralizirana arhitektura (peer-to-peer)
-- Linear scalability
-- Eventual consistency model
-
----
-## Usporedba Column-Family i Key-Value baza
-
-### Strukturalne razlike
-
-**Key-Value:**
-```
-key1 → value1
-key2 → value2
+# Top N igrača
+ZREVRANGE leaderboard 0 2 WITHSCORES
 ```
 
-**Column-Family:**
+---
+## Redis Hashes
+
+### Strukture objekata
+
+```bash
+# Postavljanje hash polja
+HSET user:1 name "Ana Horvat" age "25" city "Split"
+
+# Dohvaćanje jednog polja
+HGET user:1 name
+
+# Dohvaćanje svih polja
+HGETALL user:1
+
+# Inkrementiranje numeričkog polja
+HINCRBY user:1 visits 1
 ```
-row1 → {cf1:col1→val1, cf1:col2→val2, cf2:col1→val3}
-row2 → {cf1:col1→val4, cf2:col2→val5}
+
+---
+## Redis Streams
+
+### Event Sourcing i Messaging
+
+```bash
+# Dodavanje u stream
+XADD sensors * temperature 25.5 humidity 60
+
+# Čitanje iz streama
+XREAD COUNT 2 STREAMS sensors 0
+
+# Consumer grupe
+XGROUP CREATE sensors group1 0
+XREADGROUP GROUP group1 consumer1 COUNT 1 STREAMS sensors >
 ```
 
-**Column-Family = Key-Value + struktura + vremenske oznake**
+---
+## Redis Pub/Sub
+
+### Messaging sustav
+
+```bash
+# Pretplata na kanal
+SUBSCRIBE news
+
+# Objava na kanal
+PUBLISH news "Nova vijest!"
+
+# Pretplata na pattern
+PSUBSCRIBE news:*
+
+# Objava na specifični kanal
+PUBLISH news:sport "Sportska vijest!"
+```
 
 ---
-## Usporedba s Relacijskim BP
+## Redis kao Cache
 
-### Ključne razlike
+### Caching strategije
 
-| Relacijske BP | Column-Family BP |
-|---------------|------------------|
-| Fiksna shema | Fleksibilna shema |
-| JOIN operacije | Denormalizirani podaci |
-| Kompleksna ACID | Eventual consistency |
-| Vertikalni scale | Horizontalni scale |
-| Upiti po više kriterija | Upiti fokusirani na key |
+```bash
+# Cache-Aside Pattern
+GET cache:user:1
+# Ako nije u cacheu:
+SET cache:user:1 "user_data"
+EXPIRE cache:user:1 3600
 
----
-## Smjernice za dizajn
+# Write-Through
+SET cache:user:1 "new_data"
+# Istovremeno ažuriranje baze
 
-### Best Practices
-
-1. **Denormalizacija umjesto JOIN-ova**
-2. **Pažljiv odabir row key-a:**
-   - Ravnomjerna distribucija
-   - Optimizacija pristupa
-3. **Organizacija column families:**
-   - Zajedno pohraniti podatke koji se zajedno koriste
-4. **Upravljanje verzijama:**
-   - Kontrolirati broj verzija
-   - Konfigurirati garbage collection
-5. **Izbjegavanje kompleksnih podatkovnih struktura**
+# Cache Invalidation
+DEL cache:user:1
+```
 
 ---
-## CASE STUDY: Analiza kupaca
+## Redis Transactions
 
-### TransGlobal Transport and Shipping (TGTS)
+### Atomske operacije
 
-**Zahtjevi:**
-- Praćenje obrazaca narudžbi
-- Pohrana povijesnih podataka
-- Analiza trendova
-- Machine learning nad podacima
+```bash
+# Početak transakcije
+MULTI
 
-**Podaci:**
-- Narudžbe dostave
-- Evidencije kupaca
-- Novinski članci, bilteni industrije
-- Povijesni podaci
+# Naredbe u transakciji
+SET user:1:balance 100
+DECRBY user:1:balance 20
+INCRBY user:2:balance 20
 
----
-## TGTS: Model podataka
+# Izvršavanje transakcije
+EXEC
 
-### Column Family dizajn
-
-**Customers (CF):**
-- Row key: customer_id
-- Columns: name, address, industry, market_category...
-
-**Orders (CF):**
-- Row key: order_id
-- Columns: customer_id, date, status, total...
-
-**Indices (CF):**
-- Orders by customer: customer_id → [order_id1, order_id2...]
-- Items by order: order_id → [item_id1, item_id2...]
-- Ships by route: route_id → [ship_id1, ship_id2...]
+# Poništavanje transakcije
+DISCARD
+```
 
 ---
-## Slučajevi korištenja Column-Family DB
+## Redis Persistence
 
-### Idealne primjene
+### Opcije trajne pohrane
 
-1. **Time-series data:** IoT senzori, logovi, metrike
-   
-2. **Financijske analize:**
-   - Detekcija prijevara
-   - Analiza tržišta
-   
-3. **Personalizacija i preporuke:**
-   - Korisnički profili
-   - Ponašanja i preference
-   
-4. **Event sourcing sustavi:**
-   - Pohrana povijesti promjena
-   - Audit trail
+- **RDB (Redis Database):**
+  - Point-in-time snapshots
+  - Konfigurabilan interval
+  - Manji overhead
+
+- **AOF (Append Only File):**
+  - Write-ahead log
+  - Veća durability
+  - Veći overhead
 
 ---
-## Kada NE koristiti Column-Family BP
+## Redis Cluster
 
-### Ograničenja
+### Distribuirani Redis
 
-1. **Kompleksne relacije** između podataka
-2. **Česti multi-row upiti** bez pažljivog modeliranja
-3. **Aplikacije s brojnim ad-hoc upitima**
-4. **Potreba za strogim ACID transakcijama**
-5. **Mali volumen podataka**
+```bash
+# Kreiranje clustera
+redis-cli --cluster create \
+  127.0.0.1:7000 127.0.0.1:7001 \
+  127.0.0.1:7002 127.0.0.1:7003 \
+  --cluster-replicas 1
+
+# Provjera cluster info
+CLUSTER INFO
+
+# Provjera slotova
+CLUSTER SLOTS
+```
+
+---
+## Redis Security
+
+### Osnovne sigurnosne prakse
+
+- **Autentikacija:**
+  ```bash
+  CONFIG SET requirepass "complex_password"
+  AUTH "complex_password"
+  ```
+
+- **SSL/TLS Encryption**
+- **Network Security**
+- **Access Control Lists (ACL)**
+
+---
+## Redis Use Cases
+
+### Česti scenariji korištenja
+
+- **Session Management**
+- **Caching**
+- **Real-time Analytics**
+- **Queuing**
+- **Rate Limiting**
+- **Leaderboards**
+- **Real-time Messaging**
+
+---
+## Praktični Primjer: Rate Limiting
+
+### Implementacija
+
+```bash
+# Inkrementiranje brojača za IP
+INCR "rate:ip:${ip}"
+# Postavljanje isteka
+EXPIRE "rate:ip:${ip}" 60
+
+# Složeniji primjer s vremenskim prozorom
+MULTI
+ZADD "requests:${ip}" ${timestamp} ${request_id}
+ZREMRANGEBYSCORE "requests:${ip}" 0 ${timestamp-60000}
+ZCARD "requests:${ip}"
+EXEC
+```
+
+---
+## Redis Monitoring
+
+### Praćenje performansi
+
+```bash
+# Info o memoriji
+INFO memory
+
+# Statistika naredbi
+INFO stats
+
+# Latency monitoring
+LATENCY DOCTOR
+
+# Slow log
+SLOWLOG GET 10
+```
+
+---
+## Redis Best Practices
+
+### Optimizacija i održavanje
+
+- **Memory Management:**
+  - Praćenje memory usage
+  - Implementacija eviction policies
+  - Optimizacija struktura podataka
+
+- **Performance:**
+  - Pipelining naredbi
+  - Izbjegavanje blokirajućih operacija
+  - Pravilno particioniranje podataka
+
+---
+## Praktična Vježba
+
+### Implementacija Chat sustava
+
+1. **User Sessions:**
+   - HSET za user podatke
+   - EXPIRE za session timeout
+
+2. **Chat Rooms:**
+   - SADD za članove sobe
+   - PUBLISH za poruke
+
+3. **Message History:**
+   - LPUSH za nove poruke
+   - LTRIM za ograničenje povijesti
 
 ---
 ## Zaključak
 
-### Prednosti i nedostaci
+### Kada koristiti Redis?
 
-**Prednosti:**
-- Skalabilnost do petabajta podataka
-- Visoke performanse za analitičke upite
-- Fleksibilna shema
-- Efikasna pohrana velikih količina podataka
-
-**Nedostaci:**
-- Veća kompleksnost modeliranja
-- Ograničena podrška za transactions
-- Nije optimalna za sve tipove upita
-- Zahtijeva pažljiv dizajn ključeva
+- **High-Speed Caching**
+- **Session Management**
+- **Real-time Analytics**
+- **Message Broker**
+- **Leaderboards/Counting**
 
 ---
 ## Pitanja?
 
 ### Sada je vrijeme za vaša pitanja!
 
-- Nejasnoće oko koncepta column-family?
-- Razlike između različitih implementacija?
-- Primjeri iz prakse?
+- Nejasnoće oko Redisa?
+- Use-case scenariji?
+- Best practices?
 
 ---
 ## Hvala na Pažnji!
